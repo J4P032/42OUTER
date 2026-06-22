@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/06/22 15:35:26 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/06/22 17:40:29 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,4 +22,6 @@ fn main(){
 	//let args = std::env::args(); es el argc y argv Es un iterador
 	let a = vect3::Vect3 { x: 0.0, y: 0.0, z: 1.0 }; //let = deja, asigna a la variable. Siempre se le da valor
 	print_vector(&a);
+	let num = 43;
+	println!("el num es: {}", num);
 }
