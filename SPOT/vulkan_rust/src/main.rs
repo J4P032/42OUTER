@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/06/24 12:41:53 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/06/24 18:31:37 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,9 +27,9 @@ fn main(){
 	print_vector(&v2);
 	print_vector(&v3);
 	v1 = v3;
+	v1 *= 4.0;
 	print_vector(&v1);
-	v1 = v2 + v3;
+	v1 /= 2.0;
 	print_vector(&v1);
-	v1 = v1 - v1;
-	print_vector(&v1);
+
 }
