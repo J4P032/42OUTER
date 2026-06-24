@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:18:59 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/06/23 13:08:21 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/06/24 12:41:00 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,5 +27,23 @@ pub struct	Vect3{ //x defecto struct es privado. Pub lo expone a publico
 	pub y: f32,
 	pub z: f32,
 }
+
+use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign};
+impl Add for Vect3{
+	type	Output = Vect3;
+	fn		add(self, other: Vect3) -> Vect3{
+		let aux = Vect3 {x: self.x + other.x, y: self.y + other.y, z: self.z + other.z};
+		aux
+	}		
+}
+
+impl Sub for Vect3{
+	type	Output = Vect3;
+	fn		sub(self, other: Vect3) -> Vect3{
+		Vect3 {x: self.x - other.x, y: self.y - other.y, z: self.z - other.z}
+	}
+}
+
+
 
 
