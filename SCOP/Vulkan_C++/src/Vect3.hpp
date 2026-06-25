@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 11:23:33 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/06/25 15:20:56 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/06/25 17:10:11 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,5 +48,6 @@ class   Vect3{
 using VMAP = std::map<size_t, Vect3>; //el using tiene que star despues del objeto Vect3 para ser primero definido
 
 void	store_vertex(const std::string& line, VMAP& objPoints);
+void	test_data(VMAP& objPoints);
 
 #endif

@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 13:18:17 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/06/25 14:23:05 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/06/25 17:02:23 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,8 +25,8 @@ void	process_file(char* str){
 	VMAP objPoints; 
 	while (std::getline(inputFile, line)){
 		store_vertex(line, objPoints);
-		
 	}
+	test_data(objPoints);
 
 	
 }

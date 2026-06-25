@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 12:39:52 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/06/25 15:42:25 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/06/25 19:09:18 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -108,4 +108,13 @@ void	store_vertex(const std::string& line, VMAP& objPoints){
 	Vect3	aux(x,y,z);
 	size_t	num = objPoints.size();
 	objPoints.emplace(num + 1, aux);
+}
+
+void	test_data(VMAP& objPoints){
+	size_t 	i = 1;
+	size_t	mSize = objPoints.size();
+	while ( i <= mSize){
+		std::cout << objPoints[i] << std::endl;
+		i++;
+	}
 }
