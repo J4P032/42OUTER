@@ -6,11 +6,15 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 11:23:33 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/06/23 14:32:27 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/06/25 15:20:56 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include <iostream>
+#ifndef VECT3_HPP
+# define VECT3_HPP
+# include <iostream>
+# include <sstream>
+# include <map>
 
 class   Vect3{
     private:
@@ -40,3 +44,9 @@ class   Vect3{
         //...como si estuviera fuera de la clase. De ahí que el el cpp sea como fuera.
         friend std::ostream&   operator<<(std::ostream &out, const Vect3 &v3);
 };
+
+using VMAP = std::map<size_t, Vect3>; //el using tiene que star despues del objeto Vect3 para ser primero definido
+
+void	store_vertex(const std::string& line, VMAP& objPoints);
+
+#endif
