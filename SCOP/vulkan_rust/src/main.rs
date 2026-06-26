@@ -6,9 +6,11 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/06/24 18:31:37 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/06/26 14:51:31 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+use std::process::ExitCode;
 
 mod	vect3; //debe ser en minuscula y el file en minuscula.. ya la variable mayuscula si se quiere
 //use crate::vect3::Vect3; //para no usar los vect3::Vect3 y solo Vect3.
@@ -18,8 +20,66 @@ fn print_vector(a: &vect3::Vect3){
 	println!("x: {}, y: {}, z: {}", a.x, a.y, a.z); //si le pongo {2} un numero imprimira ese indice saltandose el orden.
 }
 
-fn main(){
-	//let args = std::env::args(); es el argc y argv Es un iterador
+fn process_file(str: &String){
+	
+}
+
+/* Result <T, K> donde T y K son tipos de variables (int, float, etc..)
+	es 'algo' hecho en Rust que devuelve dos tipos de elementos:
+	Ok(T) -> que está bien bajo devolviendo ese tipo T.
+	Err(K) -> que está mal devolviendo ese tipo K
+	Antes tenía:
+	
+	Result<(), String> 
+	
+	De tal forma que Ok devuelve void [Ok(())]
+	y Err devuelve un String. Asi cuando devolviamos en Err era:
+	
+	Err("Error: Not enough...file.obj\n".to_string());
+
+	Tenia que aplicarle el método .to_string() que lo que hace
+	es copiar todo a un contenedor string. Por que ese mensaje
+	entre comillas vive en el scope de la funcion y muere al 
+	salir de ella. Se necesita reservar en el Heap para que viva
+	y de ahi el .to_string() que lo mete en el contenedor.
+	Pero eso reserva memoria. Se puede hacer que como en C:
+	char* str = "hola"; que vive siempre en el programa en rust es:
+	&'static str. donde el "'" indica "el tiempo de vida".
+	En Rust 'static = para siempre dentro del programa.
+
+	NOTA2: si hacemos
+
+	process_file(args[1]); en C dejaría ya que es copia.. PERO
+	EN RUST NO!!! por que es un MOVE. y no puede dejar al vector
+	sin elementos. Asi que el compilador NO DEJA. para ello
+	usamos una referencia. O hacemos 
+
+	process_file(args[1].to_string())
+ */
+fn scop(args: Vec<String>) -> Result<(), &'static str>{
+	if args.len() != 2{
+		return Err("Error: Not enough parameters. Use: spot file.obj\n");
+	}
+	process_file(&args[1]);
+
+
+	Ok(())
+}
+
+fn main() -> ExitCode {
+	/*let args = std::env::args(); //argc y argv. Es un iterador.
+	pero con el iterador no podemos saber el numero de elementos que tiene
+	para imitar el argc, obtenemos el iterador y lo metemos en un vector dinámico:
+	argc == args.len() 
+	argv[0] (nombre del programa) = args[0] */
+	let args: Vec<String> = std::env::args().collect();
+	if let Err(err) = scop(args){
+		println!("{}", err);
+		return ExitCode::from(1); //hace drop (llama destructores)
+		//std::process::exit(1); //no hace drop
+	}
+	ExitCode::from(0)
+	/*
 	let mut v1 = vect3::Vect3 { x: 0.0, y: 0.0, z: 0.0 }; //let = deja, asigna a la variable. Siempre se le da valor
 	let v2 = vect3::Vect3 { x: 1.0, y: 2.0, z: 3.0 };
 	let v3 = vect3::Vect3 { x: 1.0, y: 2.0, z: 3.0 };
@@ -31,5 +91,5 @@ fn main(){
 	print_vector(&v1);
 	v1 /= 2.0;
 	print_vector(&v1);
-
+	*/
 }

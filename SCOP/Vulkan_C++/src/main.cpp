@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 13:18:17 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/06/25 17:02:23 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/06/26 10:59:55 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,7 +30,6 @@ void	process_file(char* str){
 
 	
 }
-
 
 void	scop(int ac, char** av){
 	if (ac != 2)

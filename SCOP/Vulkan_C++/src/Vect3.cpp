@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 12:39:52 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/06/25 19:09:18 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/06/26 10:59:17 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,7 @@ void	store_vertex(const std::string& line, VMAP& objPoints){
 	if (!words || type != 'v')
 		return;
 	std::string	extra;
-	if (words >> extra)
+	if (words >> extra) //basura?
 		return;
 	Vect3	aux(x,y,z);
 	size_t	num = objPoints.size();
