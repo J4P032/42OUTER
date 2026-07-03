@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   vect3.rs                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
+/*   By: jrollon- <jrollon-@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:18:59 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/06/24 18:30:54 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/07/03 18:33:17 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,12 @@ impl SubAssign for Vect3{
 }
 
 //num * Vect3
+/*el tipo va cruzado. Quiero decir que para poner num(f32) x Vect3, Vect3 debe ir
+a la izquierda y f32 a la derecha como está aqui (for f32 a la derecha).
+Ello (el for) es el que define que tipo es el "self" en este caso self es un f32 por 
+lo que no lleva un .x ni ningun dato de la estructura de Vect3, pero en el de abajoç
+(Vect3 * n) el Vect3 va en el "for" por lo que el self es un Vect3 y ha de accederse
+a sus variables por el .x .y o .z*/
 impl Mul<Vect3> for f32{
 	type Output = Vect3;
 	fn mul(self, other: Vect3) -> Vect3{
