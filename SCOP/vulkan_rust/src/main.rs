@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/06/26 17:40:16 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/07/17 19:29:49 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,11 +15,9 @@ use std::fs::File; //abrir archivo
 use std::io::BufReader; //leer archivo abierto.
 use std::io::BufRead;
 
+use vulkan_rust::vect3::Vect3; //para no usar los vulkan_rust::vect3::Vect3 y solo Vect3.
 
-mod	vect3; //debe ser en minuscula y el file en minuscula.. ya la variable mayuscula si se quiere
-//use crate::vect3::Vect3; //para no usar los vect3::Vect3 y solo Vect3.
-
-fn _print_vector(a: &vect3::Vect3){
+fn _print_vector(a: &Vect3){
 	//{} es como % en printf. Para imprimir las llaves seria {{}} -> {}
 	println!("x: {}, y: {}, z: {}", a.x, a.y, a.z); //si le pongo {2} un numero imprimira ese indice saltandose el orden.
 }
