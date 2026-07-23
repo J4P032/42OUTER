@@ -1,20 +1,16 @@
 use ticket_fields::{TicketDescription, TicketTitle};
 
-// TODO: Provide an `iter` method that returns an iterator over `&Ticket` items.
-//
-// Hint: just like in the previous exercise, you want to delegate the iteration to
-//   the `Vec<Ticket>` field in `TicketStore`. Look at the standard library documentation
-//   for `Vec` to find the right type to return from `iter`.
+// TODO: Implement the `IntoIterator` trait for `&TicketStore` so that the test compiles and passes.
 #[derive(Clone)]
 pub struct TicketStore {
     tickets: Vec<Ticket>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct Ticket {
-    title: TicketTitle,
-    description: TicketDescription,
-    status: Status,
+    pub title: TicketTitle,
+    pub description: TicketDescription,
+    pub status: Status,
 }
 
 #[derive(Clone, Debug, Copy, PartialEq)]
@@ -35,13 +31,13 @@ impl TicketStore {
         self.tickets.push(ticket);
     }
 
-    pub fn iter(&self) -> std::slice::Iter<'_, Ticket> {
+    pub fn iter(&self) -> std::slice::Iter<Ticket> {
         self.tickets.iter()
     }
 }
 
-//esto seria necesario si implementaramos un bucle for en un let tienda = TicketStore::new(); y luego
-// for i in tienda. Pero para los test de abajo no hace falta.
+//aqui ya si necesitamos el IntoIterator por que se le llama en los test y ademas como es referencia necesita vivir 
+//tanto como el mismo vector. Ya que devuelve un iterador que si muere el vector, apuntaria a basura.
 impl<'a> IntoIterator for &'a TicketStore {
     type Item = &'a Ticket;
     type IntoIter = std::slice::Iter<'a, Ticket>;
@@ -74,7 +70,7 @@ mod tests {
         store.add_ticket(ticket);
 
         let tickets: Vec<&Ticket> = store.iter().collect();
-        let tickets2: Vec<&Ticket> = store.iter().collect();
+        let tickets2: Vec<&Ticket> = (&store).into_iter().collect();
         assert_eq!(tickets, tickets2);
     }
 }

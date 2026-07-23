@@ -45,7 +45,7 @@ impl TicketStore {
 }
 
 /*NOTA! esto no hace falta para nada en estos tests! SOLO se emplea si se mete la Struct en un
-como 
+
 let tienda = TicketStore::new();
 for i in tienda. Ahi si que se necesita la implementacion de IntoIterator */
 impl IntoIterator for TicketStore{
