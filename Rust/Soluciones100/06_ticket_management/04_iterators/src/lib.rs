@@ -37,8 +37,17 @@ impl TicketStore {
     pub fn add_ticket(&mut self, ticket: Ticket) {
         self.tickets.push(ticket);
     }
+
+    pub fn into_iter(self) -> std::vec::IntoIter<Ticket>{
+        self.tickets.into_iter()
+    }
+
 }
 
+/*NOTA! esto no hace falta para nada en estos tests! SOLO se emplea si se mete la Struct en un
+como 
+let tienda = TicketStore::new();
+for i in tienda. Ahi si que se necesita la implementacion de IntoIterator */
 impl IntoIterator for TicketStore{
     type Item = Ticket; //es lo que devuelve el iterador *it que es un tickets: Vec<Ticket>,
     /*Nos dicen que no tenemos que implementar un Iterator nuevo sino usar el de Vec que existe
