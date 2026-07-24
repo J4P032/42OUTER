@@ -1,0 +1,42 @@
+// TODO: Define a function named `sum` that takes a reference to a slice of `u32` and returns the sum of all
+//  elements in the slice.
+fn sum(v: &[u32]) -> u32{
+    let mut solucion: u32 = 0;
+    /*Rust por debajo va a crear un iterador:
+    let mut it = IntoIterator::into_iter(v);
+    while let Some(i) = it.next(){...} 
+    */
+    for i in v{ //como v ya es un Slice (una referencia) no se consume aqui el ownership.
+        solucion += i;
+    }
+    solucion
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn empty() {
+        let v = vec![];
+        assert_eq!(sum(&v), 0);
+    }
+
+    #[test]
+    fn one_element() {
+        let v = vec![1];
+        assert_eq!(sum(&v), 1);
+    }
+
+    #[test]
+    fn multiple_elements() {
+        let v = vec![1, 2, 3, 4, 5];
+        assert_eq!(sum(&v), 15);
+    }
+
+    #[test]
+    fn array_slice() {
+        let v = [1, 2, 3, 4, 5];
+        assert_eq!(sum(&v), 15);
+    }
+}
