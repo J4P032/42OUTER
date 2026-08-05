@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/05 16:48:11 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/05 17:00:34 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,35 +22,33 @@ fn _print_vector(a: &Vect3){
 	println!("x: {}, y: {}, z: {}", a.x, a.y, a.z); //si le pongo {2} un numero imprimira ese indice saltandose el orden.
 }
 
+/* _reader.lines() devuelve un ITERADOR line y cada uno de ellos devuelve un
+Result<String, error> para averiguarlo podemos usar:
+			
+let line = match line {
+	Ok(value) => value,
+	Err(e) => return Err("Error: Error Reading the file"),
+};
+HAY UNA FORMA MAS SENCILLA DE HACERLO EN RUST CON UNA LINEA (la siguiente):
+	let line = line?;
+que esto pregunta con el '?' si es Ok suelta el line y si no un Err pero ese
+Err seria de tipo std::io::error y no &'static str como es y fallaria compilar
+para ello mapeamos el error con map_err pero este método necesita una funcion
+recibe el error std::io::error y devuelve un &str. yo le digo me da igual loque
+recibo, solo devuelveme y string: |e| uso el error. |_| ignoro el error.
+|_| es una closure que se puede ver en los apuntes de Rust y que en si son los
+parametros. Una funcion Closure es como : |parametros| implementacion.
+*/
 fn process_file(str: &str) -> Result<(), &'static str>{
 	if let Ok(input_file) = File::open(str){ // tras el open es un Result<File, std::io::error>
 		let _reader = BufReader::new(input_file); //el _ para si no la uso no warning compilador
 		for line in _reader.lines(){
-			/* _reader.lines() devuelve un ITERADOR line y cada uno de ellos devuelve un
-			 Result<String, error> para averiguarlo podemos usar:
-			
-			let line = match line {
-				Ok(value) => value,
-				Err(e) => return Err("Error: Error Reading the file\n"),
-			};
-			HAY UNA FORMA MAS SENCILLA DE HACERLO EN RUST CON UNA LINEA (la siguiente):
-				let line = line?;
-			que esto pregunta con el '?' si es Ok suelta el line y si no un Err pero ese
-			Err seria de tipo std::io::error y no &'static str como es y fallaria compilar
-			para ello mapeamos el error con map_err pero este método necesita una funcion
-			recibe el error std::io::error y devuelve un &str. yo le digo me da igual loque
-			recibo, solo devuelveme y string: |e| uso el error. |_| ignoro el error.
-			|_| es una closure que se puede ver en los apuntes de Rust y que en si son los
-			parametros. Una funcion Closure es como : |parametros| implementacion.
-			*/
-			let line = line.map_err(|_| "Error: Error Reading the file\n")?;
+			let line = line.map_err(|_| "Error: Error Reading the file")?;
 		}
 		return Ok(());
 	} else {
-		return Err("Error: Couldn't open the OBJ file\n");
+		return Err("Error: Couldn't open the OBJ file");
 	}
-	 
-	
 }
 
 /* Result <T, K> donde T y K son tipos de variables (int, float, etc..)
