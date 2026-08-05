@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/05 17:00:34 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/05 17:31:46 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@ use std::io::BufReader; //leer archivo abierto.
 use std::io::BufRead;
 
 use vulkan_rust::vect3::Vect3; //para no usar los vulkan_rust::vect3::Vect3 y solo Vect3.
+use vulkan_rust::parser::parser_line;
 
 fn _print_vector(a: &Vect3){
 	//{} es como % en printf. Para imprimir las llaves seria {{}} -> {}
@@ -44,6 +45,7 @@ fn process_file(str: &str) -> Result<(), &'static str>{
 		let _reader = BufReader::new(input_file); //el _ para si no la uso no warning compilador
 		for line in _reader.lines(){
 			let line = line.map_err(|_| "Error: Error Reading the file")?;
+			parser_line(line);
 		}
 		return Ok(());
 	} else {
