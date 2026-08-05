@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/07/17 19:29:49 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/05 16:48:11 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -85,9 +85,9 @@ fn process_file(str: &str) -> Result<(), &'static str>{
 
 	process_file(args[1].to_string())
  */
-fn scop(args: Vec<String>) -> Result<(), &'static str>{
+fn scop(args: &Vec<String>) -> Result<(), &'static str>{
 	if args.len() != 2{
-		return Err("Error: Not enough parameters. Use: spot file.obj\n");
+		return Err("Error: Not enough parameters. Use: spot file.obj");
 	}
 	if let Err(e) = process_file(&args[1]){
 		return Err(e);
@@ -104,7 +104,7 @@ fn main() -> ExitCode {
 	argc == args.len() 
 	argv[0] (nombre del programa) = args[0] */
 	let args: Vec<String> = std::env::args().collect();
-	if let Err(err) = scop(args){
+	if let Err(err) = scop(&args){
 		println!("{}", err);
 		return ExitCode::from(1); //hace drop (llama destructores)
 		//std::process::exit(1); //no hace drop
