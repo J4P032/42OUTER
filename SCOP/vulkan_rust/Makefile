@@ -5,6 +5,7 @@ all: $(CHECKER)
 	
 
 $(CHECKER):
+	clear
 	-cargo init
 	cargo build
 	mv target/debug/vulkan_rust ./$(NAME)

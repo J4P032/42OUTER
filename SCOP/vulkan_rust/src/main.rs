@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/05 17:31:46 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/17 15:30:09 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@ use std::io::BufRead;
 
 use vulkan_rust::vect3::Vect3; //para no usar los vulkan_rust::vect3::Vect3 y solo Vect3.
 use vulkan_rust::parser::parser_line;
+use std::collections::BTreeMap;
 
 fn _print_vector(a: &Vect3){
 	//{} es como % en printf. Para imprimir las llaves seria {{}} -> {}
@@ -34,18 +35,18 @@ HAY UNA FORMA MAS SENCILLA DE HACERLO EN RUST CON UNA LINEA (la siguiente):
 	let line = line?;
 que esto pregunta con el '?' si es Ok suelta el line y si no un Err pero ese
 Err seria de tipo std::io::error y no &'static str como es y fallaria compilar
-para ello mapeamos el error con map_err pero este método necesita una funcion
-recibe el error std::io::error y devuelve un &str. yo le digo me da igual loque
-recibo, solo devuelveme y string: |e| uso el error. |_| ignoro el error.
+para ello mapeamos el error con map_err pero este método propio de Rust necesita
+una funcion recibe el error std::io::error y devuelve un &str. yo le digo me da
+igual lo que recibo, solo devuelveme y string: |e| uso el error. |_| ignoro el error.
 |_| es una closure que se puede ver en los apuntes de Rust y que en si son los
 parametros. Una funcion Closure es como : |parametros| implementacion.
 */
-fn process_file(str: &str) -> Result<(), &'static str>{
+fn process_file(str: &str, obj_points: &mut BTreeMap<u16, Vect3>) -> Result<(), &'static str>{
 	if let Ok(input_file) = File::open(str){ // tras el open es un Result<File, std::io::error>
 		let _reader = BufReader::new(input_file); //el _ para si no la uso no warning compilador
 		for line in _reader.lines(){
-			let line = line.map_err(|_| "Error: Error Reading the file")?;
-			parser_line(line);
+			let line = line.map_err(|_| "Error: Error Reading the file")?; //si Err para el bucle
+			parser_line(line, obj_points);
 		}
 		return Ok(());
 	} else {
@@ -89,7 +90,8 @@ fn scop(args: &Vec<String>) -> Result<(), &'static str>{
 	if args.len() != 2{
 		return Err("Error: Not enough parameters. Use: spot file.obj");
 	}
-	if let Err(e) = process_file(&args[1]){
+	let mut obj_points: BTreeMap<u16, Vect3> = BTreeMap::new();
+	if let Err(e) = process_file(&args[1], &mut obj_points){
 		return Err(e);
 	}
 
@@ -110,17 +112,4 @@ fn main() -> ExitCode {
 		//std::process::exit(1); //no hace drop
 	}
 	ExitCode::from(0)
-	/*
-	let mut v1 = vect3::Vect3 { x: 0.0, y: 0.0, z: 0.0 }; //let = deja, asigna a la variable. Siempre se le da valor
-	let v2 = vect3::Vect3 { x: 1.0, y: 2.0, z: 3.0 };
-	let v3 = vect3::Vect3 { x: 1.0, y: 2.0, z: 3.0 };
-	print_vector(&v1);
-	print_vector(&v2);
-	print_vector(&v3);
-	v1 = v3;
-	v1 *= 4.0;
-	print_vector(&v1);
-	v1 /= 2.0;
-	print_vector(&v1);
-	*/
 }
