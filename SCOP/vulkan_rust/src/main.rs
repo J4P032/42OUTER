@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/17 15:41:54 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/17 16:06:42 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -94,7 +94,9 @@ fn scop(args: &Vec<String>) -> Result<(), &'static str>{
 	if let Err(e) = process_file(&args[1], &mut obj_points){
 		return Err(e);
 	}
-	for (_, punto) in obj_points{
+	
+	
+	for (_, punto) in &obj_points{
 			_print_vector(&punto);
 	}
 
