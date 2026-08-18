@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/18 12:42:13 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/18 14:06:09 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/18 15:52:10 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,22 +14,21 @@
 
 Obj::Obj(void){};
 
-Obj::Obj(VMAP points) : _points(points) {}
+Obj::Obj(VMAP points, VINDEX polygon_indexes) : _points(points),
+	_polygon_indexes(polygon_indexes) {}
 
-Obj::Obj(const Obj &other) : _points(other._points) {}
+Obj::Obj(const Obj &other) : _points(other._points),
+	_polygon_indexes(other._polygon_indexes) {}
 
 Obj&	Obj::operator=(const Obj &other){
 	if (this != &other){
 		_points = other._points;
+		_polygon_indexes = other._polygon_indexes;
 	}
 	return *this;
 }
 
 Obj::~Obj(void){}
-
-const VMAP&	Obj::get_points(void) const{
-	return _points;
-}
 
 void    Obj::stream_insert(std::ostream &out) const{
     out << std::showpoint; //show 0's if is 0 -> 0 = 0.0
