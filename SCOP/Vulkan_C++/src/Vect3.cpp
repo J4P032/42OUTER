@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 12:39:52 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/07/11 19:34:11 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/18 11:14:24 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,32 +93,4 @@ void    Vect3::stream_insert(std::ostream &out) const{
 	out << "x: " << _x << ", y: " << _y << ", z: " << _z;
 }
 
-/*El istrinstream parsea al tipo que se le dice saltandose
-los espacios por tokens. si hay fallo dara el iss(words) como falso pero puede
-haber basura por ejemplo:
-v 1 2 3 8
-en ese caso words >> extra seria true y nos salimos por que es linea no valida*/
-void	store_vertex(const std::string& line, VMAP& objPoints){
-	char				type;
-	std::istringstream	words(line); //conecta el line con el iss words
-	float				x, y, z;
 
-	words >> type >> x >> y >> z;
-	if (!words || type != 'v')
-		return;
-	std::string	extra;
-	if (words >> extra) //basura?
-		return;
-	Vect3	aux(x,y,z);
-	size_t	num = objPoints.size();
-	objPoints.emplace(num + 1, aux);
-}
-
-void	test_data(VMAP& objPoints){
-	size_t 	i = 1;
-	size_t	mSize = objPoints.size();
-	while ( i <= mSize){
-		std::cout << objPoints[i] << std::endl;
-		i++;
-	}
-}

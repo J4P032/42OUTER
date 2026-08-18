@@ -6,4 +6,6 @@ set(CMAKE_CXX_STANDARD 14)
 add_executable(scop
     src/main.cpp
     src/Vect3.cpp
+    src/Obj.cpp
+    src/parser.cpp
 )

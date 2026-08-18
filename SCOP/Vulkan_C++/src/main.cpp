@@ -6,11 +6,12 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 13:18:17 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/06/26 10:59:55 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/18 14:11:57 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Vect3.hpp"
+#include "Obj.hpp"
+#include "parser.hpp"
 #include <iostream>
 #include <cstring>
 #include <stdexcept>
@@ -24,11 +25,11 @@ void	process_file(char* str){
 	std::string	line;
 	VMAP objPoints; 
 	while (std::getline(inputFile, line)){
-		store_vertex(line, objPoints);
+		store_obj_data(line, objPoints);
 	}
-	test_data(objPoints);
-
+	Obj obj3D(objPoints);
 	
+	std::cout << obj3D << std::endl; //for testing good data.
 }
 
 void	scop(int ac, char** av){
