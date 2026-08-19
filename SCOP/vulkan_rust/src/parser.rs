@@ -6,13 +6,12 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/05 17:27:18 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/19 12:20:16 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/19 15:15:51 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 //use std::str::SplitWhitespace; no hace falta ya que en String esta incorporado
-use std::collections::BTreeMap;
-use crate::vect3::Vect3;
+use crate::obj::{Obj, Vect3};
 /*Aqui tenemos la linea de cada obj. para parsearlo, en
 C++ usamos el istringstream, que separaba los espacios
 
@@ -23,7 +22,7 @@ un atof. por ejemplo:
     let txt = "3.14";
     let num = txt.parse::<f32>(); que devuelve un Result
     OK(3.14) o Err si no era válido*/
-pub fn parser_line(line: String, obj_points: &mut BTreeMap<usize, Vect3>){
+pub fn parser_line(line: String, obj3d: &mut Obj){
 	let mut word = line.split_whitespace(); //iterador
 	if let Some(vertex_type) = word.next(){ //es un Option.
 		if vertex_type != "v"{
@@ -38,10 +37,13 @@ pub fn parser_line(line: String, obj_points: &mut BTreeMap<usize, Vect3>){
 			if let (Some(x_str), Some(y_str), Some(z_str)) = (word.next(), word.next(), word.next()){
 				if let (Ok(x), Ok(y), Ok(z)) = (x_str.parse::<f32>(), y_str.parse::<f32>(), z_str.parse::<f32>()){
 					let v = Vect3::new(x, y, z);
-					let i = obj_points.len() as usize;
-					obj_points.insert(i, v);	
+					//let i = obj3D.len() as usize;
+					let i = obj3d.map_len();
+					obj3d.map_insert(i, v);
+					//obj_points.insert(i, v);	
 				}
 			}
 		}
 	}
 }
+

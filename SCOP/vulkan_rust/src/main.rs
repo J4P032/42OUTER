@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/19 12:19:38 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/19 15:17:55 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,7 +17,6 @@ use std::io::BufRead;
 
 use vulkan_rust::obj::{Obj, Vect3}; //allow "let a: vulkan_rust::obj::Obj;" -> "let a: Obj;"
 use vulkan_rust::parser::parser_line;
-use std::collections::BTreeMap;
 
 fn _print_vector(a: &Vect3){
 	println!("x: {}, y: {}, z: {}", a.x(), a.y(), a.z());
@@ -40,12 +39,12 @@ igual lo que recibo, solo devuelveme y string: |e| uso el error. |_| ignoro el e
 |_| es una closure que se puede ver en los apuntes de Rust y que en si son los
 parametros. Una funcion Closure es como : |parametros| implementacion.
 */
-fn process_file(str: &str, obj_points: &mut BTreeMap<usize, Vect3>) -> Result<(), &'static str>{
+fn process_file(str: &str, obj3d: &mut Obj) -> Result<(), &'static str>{
 	if let Ok(input_file) = File::open(str){ // open is a Result<File, std::io::error>
 		let _reader = BufReader::new(input_file); //'_' no warning in compiler if not used
 		for line in _reader.lines(){
 			let line = line.map_err(|_| "Error: Error Reading the file")?; //if Err stops for
-			parser_line(line, obj_points);
+			parser_line(line, obj3d);
 		}
 		return Ok(());
 	} else {
@@ -89,16 +88,16 @@ fn scop(args: &Vec<String>) -> Result<(), &'static str>{
 	if args.len() != 2{
 		return Err("Error: Not enough parameters. Use: spot file.obj");
 	}
-	let mut obj_points: BTreeMap<usize, Vect3> = BTreeMap::new();
-	if let Err(e) = process_file(&args[1], &mut obj_points){
+	let mut obj3d = Obj::empty();
+	if let Err(e) = process_file(&args[1], &mut obj3d){
 		return Err(e);
 	}
 	
-	
-	for (_, punto) in &obj_points{
-			_print_vector(&punto);
+	let obj_points = obj3d.mapa();
+	 
+	for (_, punto) in obj_points{
+		_print_vector(&punto);
 	}
-
 
 	Ok(())
 }
