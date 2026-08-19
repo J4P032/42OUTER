@@ -1,16 +1,25 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   lib.rs                                             :+:      :+:    :+:   */
+/*   obj.rs                                             :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/08/19 12:09:35 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/19 12:10:49 by jrollon-         ###   ########.fr       */
+/*   Created: 2026/08/19 11:39:29 by jrollon-          #+#    #+#             */
+/*   Updated: 2026/08/19 12:07:21 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-//This is the files of the project to be included to find the .rs files.
-pub mod	vect3; 
-pub mod parser;
-pub mod obj;
+pub use crate::vect3::Vect3; //pub to be included in main with obj
+use std::collections::BTreeMap;
+
+#[derive(Clone)] //copy not authorized in BTreeMap because it is in HEAP mem
+pub struct Obj{
+	_points: BTreeMap<usize, Vect3>
+}
+
+impl Obj{
+	pub fn new(points: BTreeMap<usize, Vect3>) -> Self{
+		Obj{_points: points,}
+	}
+}

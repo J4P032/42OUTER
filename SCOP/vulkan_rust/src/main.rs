@@ -6,22 +6,21 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/19 11:34:27 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/19 12:19:38 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-use std::process::ExitCode; //codigo de salida en main
-use std::fs::File; //abrir archivo
-use std::io::BufReader; //leer archivo abierto.
+use std::process::ExitCode; //exit code in main, as return (1 or 0)
+use std::fs::File; //open file
+use std::io::BufReader; //read opened file
 use std::io::BufRead;
 
-use vulkan_rust::vect3::Vect3; //para no usar los vulkan_rust::vect3::Vect3 y solo Vect3.
+use vulkan_rust::obj::{Obj, Vect3}; //allow "let a: vulkan_rust::obj::Obj;" -> "let a: Obj;"
 use vulkan_rust::parser::parser_line;
 use std::collections::BTreeMap;
 
 fn _print_vector(a: &Vect3){
-	//{} es como % en printf. Para imprimir las llaves seria {{}} -> {}
-	println!("x: {}, y: {}, z: {}", a.x(), a.y(), a.z()); //si le pongo {2} un numero imprimira ese indice saltandose el orden.
+	println!("x: {}, y: {}, z: {}", a.x(), a.y(), a.z());
 }
 
 /* _reader.lines() devuelve un ITERADOR line y cada uno de ellos devuelve un
@@ -41,11 +40,11 @@ igual lo que recibo, solo devuelveme y string: |e| uso el error. |_| ignoro el e
 |_| es una closure que se puede ver en los apuntes de Rust y que en si son los
 parametros. Una funcion Closure es como : |parametros| implementacion.
 */
-fn process_file(str: &str, obj_points: &mut BTreeMap<u16, Vect3>) -> Result<(), &'static str>{
-	if let Ok(input_file) = File::open(str){ // tras el open es un Result<File, std::io::error>
-		let _reader = BufReader::new(input_file); //el _ para si no la uso no warning compilador
+fn process_file(str: &str, obj_points: &mut BTreeMap<usize, Vect3>) -> Result<(), &'static str>{
+	if let Ok(input_file) = File::open(str){ // open is a Result<File, std::io::error>
+		let _reader = BufReader::new(input_file); //'_' no warning in compiler if not used
 		for line in _reader.lines(){
-			let line = line.map_err(|_| "Error: Error Reading the file")?; //si Err para el bucle
+			let line = line.map_err(|_| "Error: Error Reading the file")?; //if Err stops for
 			parser_line(line, obj_points);
 		}
 		return Ok(());
@@ -90,7 +89,7 @@ fn scop(args: &Vec<String>) -> Result<(), &'static str>{
 	if args.len() != 2{
 		return Err("Error: Not enough parameters. Use: spot file.obj");
 	}
-	let mut obj_points: BTreeMap<u16, Vect3> = BTreeMap::new();
+	let mut obj_points: BTreeMap<usize, Vect3> = BTreeMap::new();
 	if let Err(e) = process_file(&args[1], &mut obj_points){
 		return Err(e);
 	}
@@ -113,8 +112,8 @@ fn main() -> ExitCode {
 	let args: Vec<String> = std::env::args().collect();
 	if let Err(err) = scop(&args){
 		println!("{}", err);
-		return ExitCode::from(1); //hace drop (llama destructores)
-		//std::process::exit(1); //no hace drop
+		return ExitCode::from(1); //do drop (call destructors)
+		//std::process::exit(1); //no drop
 	}
 	ExitCode::from(0)
 }
