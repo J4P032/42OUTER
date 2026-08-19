@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/05 17:27:18 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/17 15:28:05 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/19 11:29:30 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,7 @@ pub fn parser_line(line: String, obj_points: &mut BTreeMap<u16, Vect3>){
 			*/
 			if let (Some(x_str), Some(y_str), Some(z_str)) = (word.next(), word.next(), word.next()){
 				if let (Ok(x), Ok(y), Ok(z)) = (x_str.parse::<f32>(), y_str.parse::<f32>(), z_str.parse::<f32>()){
-					let v = Vect3 { x, y, z };
+					let v = Vect3::new(x, y, z);
 					let i = obj_points.len() as u16;
 					obj_points.insert(i, v);	
 				}

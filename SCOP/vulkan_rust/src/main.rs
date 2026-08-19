@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/17 16:06:42 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/19 11:34:27 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,7 +21,7 @@ use std::collections::BTreeMap;
 
 fn _print_vector(a: &Vect3){
 	//{} es como % en printf. Para imprimir las llaves seria {{}} -> {}
-	println!("x: {}, y: {}, z: {}", a.x, a.y, a.z); //si le pongo {2} un numero imprimira ese indice saltandose el orden.
+	println!("x: {}, y: {}, z: {}", a.x(), a.y(), a.z()); //si le pongo {2} un numero imprimira ese indice saltandose el orden.
 }
 
 /* _reader.lines() devuelve un ITERADOR line y cada uno de ellos devuelve un

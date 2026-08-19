@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:18:59 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/17 12:13:00 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/19 11:35:13 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,12 +15,39 @@ let v1 = v2;
 se produce un MOVE.*/
 #[derive(Copy, Clone)]
 pub struct	Vect3{ //x defecto struct es privado. Pub lo expone a publico
-	pub x: f32,
-	pub y: f32,
-	pub z: f32,
+	x: f32,
+	y: f32,
+	z: f32,
 }
 
 use std::ops::{Add, AddAssign, Sub, SubAssign, Mul, MulAssign, Div, DivAssign};
+
+//constructor
+impl Vect3{
+	pub fn new(x: f32, y: f32, z: f32) -> Self{
+		Vect3{x, y, z}
+	}
+}
+
+//getters
+impl Vect3{
+	pub fn x(&self) -> f32{
+		self.x
+	}
+}
+
+impl Vect3{
+	pub fn y(&self) -> f32{
+		self.y
+	}
+}
+
+impl Vect3{
+	pub fn z(&self) -> f32{
+		self.z
+	}
+}
+
 
 // +
 impl Add for Vect3{
