@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/19 15:17:55 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/19 17:12:04 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,7 +44,7 @@ fn process_file(str: &str, obj3d: &mut Obj) -> Result<(), &'static str>{
 		let _reader = BufReader::new(input_file); //'_' no warning in compiler if not used
 		for line in _reader.lines(){
 			let line = line.map_err(|_| "Error: Error Reading the file")?; //if Err stops for
-			parser_line(line, obj3d);
+			parser_line(line, obj3d); //obj3d is already & as is &mut in function
 		}
 		return Ok(());
 	} else {
