@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/19 11:39:29 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/19 18:51:45 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/19 19:34:50 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,12 @@ impl Obj{
 	}
 }
 
+impl Obj{
+	pub fn vector(&self) -> &Vec<u32>{
+		&self._polygon_indexes
+	}
+}
+
 //setter
 impl Obj{
 	pub fn map_insert(&mut self, i: usize, v: Vect3){
@@ -58,5 +64,19 @@ impl Obj{
 	pub fn vec_insert(&mut self, i: u32){
 		self._polygon_indexes.push(i);
 	}
+}
 
+impl Obj{
+	pub fn write_me(&self){
+		println!("POINTS:");
+		for (_, punto) in &self._points{
+			println!("x: {}, y: {}, z: {}", punto.x(), punto.y(), punto.z());
+		}
+		println!();
+		println!("FACES:");
+		
+		for face in self._polygon_indexes.chunks(3) {
+			println!("{} {} {}", face[0], face[1], face[2]);
+		}
+	}
 }

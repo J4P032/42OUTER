@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/05 17:27:18 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/19 19:03:36 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/19 19:59:46 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,9 +59,11 @@ pub fn parser_line(line: String, obj3d: &mut Obj){
 				while let Some(sub_token) = sub_token.next(){ 
 					//vertex
 					if num_sub_token == 0{
-						//4 vertex
-						if num_tokens == 5{
-							if let Ok(valor) = sub_token.parse::<u32>(){
+						if let Ok(valor) = sub_token.parse::<u32>(){
+
+							//4 vertex
+							if num_tokens == 5{
+							
 								if num_vertex == 1{
 									first = valor;
 								} else if num_vertex == 3{
@@ -76,10 +78,14 @@ pub fn parser_line(line: String, obj3d: &mut Obj){
 									obj3d.vec_insert(third);
 									obj3d.vec_insert(valor);
 								}
+							
+							} else { //3 vertex
+								obj3d.vec_insert(valor);
 							}
-						} 
 						num_sub_token += 1;
+						}
 					}
+					
 					//texture coordinates
 					if num_sub_token == 1{
 						num_sub_token += 1;
@@ -95,4 +101,9 @@ pub fn parser_line(line: String, obj3d: &mut Obj){
 		}
 	}
 }
+
+
+
+
+
 

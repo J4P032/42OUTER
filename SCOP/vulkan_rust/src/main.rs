@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/19 17:12:04 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/19 19:28:46 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -93,12 +93,8 @@ fn scop(args: &Vec<String>) -> Result<(), &'static str>{
 		return Err(e);
 	}
 	
-	let obj_points = obj3d.mapa();
-	 
-	for (_, punto) in obj_points{
-		_print_vector(&punto);
-	}
-
+	obj3d.write_me();
+	
 	Ok(())
 }
 
