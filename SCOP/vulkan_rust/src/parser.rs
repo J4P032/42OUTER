@@ -6,22 +6,36 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/05 17:27:18 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/19 19:59:46 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/20 14:26:04 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-//use std::str::SplitWhitespace; no hace falta ya que en String esta incorporado
 use crate::obj::{Obj, Vect3};
+use std::str::SplitWhitespace; //to be accepted as parameter in functions.
+
+/*NOTE:
+.parse::<f32>() is like atof o stof. example:
+    let txt = "3.14";
+    let num = txt.parse::<f32>(); returns a Result
+    OK(3.14) or Err if it wasn't valid.
+	If we used x: word.next().parse::<f32>().unwrap() could panic, but we want
+	to only to ignore that line	*/
+fn	store_vertex(obj3d: &mut Obj, word: &mut SplitWhitespace){
+	if let (Some(x_str), Some(y_str), Some(z_str)) = (word.next(), word.next(), word.next()){
+		if let (Ok(x), Ok(y), Ok(z)) = (x_str.parse::<f32>(), y_str.parse::<f32>(), z_str.parse::<f32>()){
+			let v = Vect3::new(x, y, z);
+			let i = obj3d.map_len();
+			obj3d.map_insert(i, v);	
+		}
+	}
+}
+
+
 /*Aqui tenemos la linea de cada obj. para parsearlo, en
 C++ usamos el istringstream, que separaba los espacios
-
 como tokens. Aqui vamos a usar algo parecido:
 std::str::SplitWhiteSpace siendo un iterador
-NOTA: .parse::<f32>() es la forma de convertir de texto a numero como si fuera
-un atof. por ejemplo:
-    let txt = "3.14";
-    let num = txt.parse::<f32>(); que devuelve un Result
-    OK(3.14) o Err si no era válido*/
+*/
 pub fn parser_line(line: String, obj3d: &mut Obj){
 	let num_tokens = line.split_whitespace().count(); //runs all the iterator
 	
@@ -33,18 +47,8 @@ pub fn parser_line(line: String, obj3d: &mut Obj){
 	if let Some(label) = word.next(){ //is an Option.
 		
 		//POINTS
-		/*puede fallar en linea x = 23.32e3 por ejemplo asi que usamos Some para next() y 
-		Ok para .parse::<f32>() que es como hacer un atof().
-		Si usasemos x: word.next().parse::<f32>().unwrap() podria hacer un panic, lo cual
-		mal, por que solo queremos saltar dicha linea */
 		if label == "v"{
-			if let (Some(x_str), Some(y_str), Some(z_str)) = (word.next(), word.next(), word.next()){
-				if let (Ok(x), Ok(y), Ok(z)) = (x_str.parse::<f32>(), y_str.parse::<f32>(), z_str.parse::<f32>()){
-					let v = Vect3::new(x, y, z);
-					let i = obj3d.map_len();
-					obj3d.map_insert(i, v);	
-				}
-			}
+			store_vertex(obj3d, &mut word);
 		}
 
 		//FACES
