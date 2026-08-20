@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/05 17:27:18 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/20 15:10:59 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/20 15:13:27 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,7 +107,7 @@ fn	store_vertex(obj3d: &mut Obj, word: &mut SplitWhitespace){
 
 /*Here we have the line of each obj. To parser it in C++ we use istringstream.
 here we are going to use std::str::SplitWhiteSpace that is an iterator*/
-pub fn parser_line(line: String, obj3d: &mut Obj){
+pub fn store_obj_data(line: String, obj3d: &mut Obj){
 	let num_tokens = line.split_whitespace().count(); //runs all the iterator
 	
 	//only 3-4 vertex polygons considered

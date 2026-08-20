@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/19 19:28:46 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/20 15:13:18 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,7 +16,7 @@ use std::io::BufReader; //read opened file
 use std::io::BufRead;
 
 use vulkan_rust::obj::{Obj, Vect3}; //allow "let a: vulkan_rust::obj::Obj;" -> "let a: Obj;"
-use vulkan_rust::parser::parser_line;
+use vulkan_rust::parser::store_obj_data;
 
 fn _print_vector(a: &Vect3){
 	println!("x: {}, y: {}, z: {}", a.x(), a.y(), a.z());
@@ -44,7 +44,7 @@ fn process_file(str: &str, obj3d: &mut Obj) -> Result<(), &'static str>{
 		let _reader = BufReader::new(input_file); //'_' no warning in compiler if not used
 		for line in _reader.lines(){
 			let line = line.map_err(|_| "Error: Error Reading the file")?; //if Err stops for
-			parser_line(line, obj3d); //obj3d is already & as is &mut in function
+			store_obj_data(line, obj3d); //obj3d is already & as is &mut in function
 		}
 		return Ok(());
 	} else {
