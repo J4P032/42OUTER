@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/18 12:27:35 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/18 17:04:44 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/08/20 13:10:47 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,6 +17,7 @@
 # include "Vect3.hpp"
 # include <map>
 # include <vector>
+# include <cstdint> //u_int32_t
 
 using VMAP = std::map<size_t, Vect3>;
 using VINDEX = std::vector<uint32_t>; //size_t not managed by vulkan. vector of face indexes
