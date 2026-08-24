@@ -1,7 +1,13 @@
 #pragma once
 
 #define VK_NO_PROTOTYPES
-#include <SDL3/SDL_vulkan.h>
+
+#ifdef USING_SDL2
+	#include <SDL2/SDL_vulkan.h> //para SDL2 42
+#else
+	#include <SDL3/SDL_vulkan.h>
+#endif
+
 #include <string>
 #include <vulkan/vulkan.h>
 #include <vector>

@@ -1,6 +1,12 @@
 #include "utils.h"
 
-#include <SDL3/SDL.h>
+#ifdef USING_SDL2
+	#include <SDL2/SDL.h> //para SDL2 instalado en 42.
+#else
+	#include <SDL3/SDL.h>
+#endif
+
+
 #include <fstream>
 #include <sstream>
 

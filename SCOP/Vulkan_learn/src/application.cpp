@@ -1,13 +1,20 @@
 #include "application.h"
 #include "utils.h"
 
-#include <SDL3/SDL.h>
+#ifdef USING_SDL2
+	#include <SDL2/SDL.h> //para SDL2 instalado en 42.
+#else
+	#include <SDL3/SDL.h>
+#endif
+
 #define VOLK_IMPLEMENTATION
 #include <volk.h>
 #define VMA_IMPLEMENTATION
 #define VMA_STATIC_VULKAN_FUNCTIONS 0
 #define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 #include <vma/vk_mem_alloc.h>
+
+
 
 
 #include <iostream>
@@ -17,10 +24,33 @@ void Application::showError(const std::string &errorMessasge) const
 	SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, "Error", errorMessasge.c_str(), window);
 }
 
+/*SDL es independiente de Vulkan.
+Es una libreria que proporciona cosas que el SO hace (ventanas, Teclado/raton, eventos, entrada...)
+La secuencia es: Programa -> SDL -> Vulkan -> dibuja en la ventana.
+Se podria usar en OpenGl tambien.
+SDL -> crea y gestiona la ventana
+Vulkan -> se comunica con la GPU para dibujar en la ventana.
+*/
 bool Application::initialize()
 {
-	SDL_InitSubSystem(SDL_INIT_VIDEO);
-	window = SDL_CreateWindow("Vulkan Learning", width, height, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE);
+	//dice a SDL -> quiero activar el subsistema de video
+	//SDL_InitSubSystem(SDL_INIT_VIDEO); 
+	
+	//SDL_WINDOW_VULKAN = la ventana sera usada con vulkan
+	#ifdef USING_SDL2
+		SDL_Init(SDL_INIT_VIDEO);
+		window = SDL_CreateWindow(
+			"Vulkan SDL2",
+			SDL_WINDOWPOS_CENTERED,
+			SDL_WINDOWPOS_CENTERED,
+			width,
+			height,
+			SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE );
+	#else
+			SDL_InitSubSystem(SDL_INIT_VIDEO);
+			window = SDL_CreateWindow("Vulkan SDL3", width, height, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE); 
+	#endif
+	
 	if (!window)
 	{
 		showError("Error creating window");
@@ -111,19 +141,30 @@ void Application::run()
 		SDL_Event event{ 0 };
 		while (SDL_PollEvent(&event))
 		{
-			if (event.type == SDL_EVENT_QUIT)
-			{
-				running = false;
-				break;
-			}
-			else if (event.type == SDL_EVENT_WINDOW_RESIZED)
-			{
-				width = event.window.data1;
-				height = event.window.data2;
-				break;
-			}
+			#ifdef USING_SDL2
+				if (event.type == SDL_QUIT){
+					running = false;
+					break;
+				}
+				else if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_RESIZED){
+					width = event.window.data1;
+					height = event.window.data2;
+					break;
+				}
+			#else
+				if (event.type == SDL_EVENT_QUIT)
+				{
+					running = false;
+					break;
+				}
+				else if (event.type == SDL_EVENT_WINDOW_RESIZED)
+				{
+					width = event.window.data1;
+					height = event.window.data2;
+					break;
+				}
+			#endif
 		}
-
 		render();
 	}
 }
@@ -217,7 +258,20 @@ bool Application::createVulkanInstance()
 	};
 
 	uint32_t instExtCount = 0;
-	const char *const *extensions = SDL_Vulkan_GetInstanceExtensions(&instExtCount);
+	const char *const *extensions = nullptr;
+
+	#ifdef USING_SDL2
+		// Código para SDL2: Pedimos primero cuántas hay, y luego rellenamos un vector
+    	SDL_Vulkan_GetInstanceExtensions(window, &instExtCount, nullptr);
+    	std::vector<const char*> sdlExtensions(instExtCount);
+    	SDL_Vulkan_GetInstanceExtensions(window, &instExtCount, sdlExtensions.data());
+    	extensions = sdlExtensions.data();
+	#else
+    	// Código original para SDL3
+    	extensions = SDL_Vulkan_GetInstanceExtensions(&instExtCount);	
+
+
+	#endif
 
 	//evitamos el layer de comprobacion por que no tengo instalado el sdk de vulkan. cuando este se puede dejar.
 	/* std::vector<const char *> requestedLayers
@@ -248,8 +302,13 @@ bool Application::createVulkanInstance()
 
 bool Application::createSurface()
 {
-	if (!SDL_Vulkan_CreateSurface(window, vulkanInstance, nullptr, &surface))
+	#ifdef USING_SDL2
+    	if (!SDL_Vulkan_CreateSurface(window, vulkanInstance, &surface))
+	#else
+    	if (!SDL_Vulkan_CreateSurface(window, vulkanInstance, nullptr, &surface))
+	#endif
 	{
+		showError("Failed to create Vulkan surface from window");
 		return false;
 	}
 	return true;
