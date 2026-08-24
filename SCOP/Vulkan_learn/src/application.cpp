@@ -33,10 +33,8 @@ Vulkan -> se comunica con la GPU para dibujar en la ventana.
 */
 bool Application::initialize()
 {
-	//dice a SDL -> quiero activar el subsistema de video
-	//SDL_InitSubSystem(SDL_INIT_VIDEO); 
-	
-	//SDL_WINDOW_VULKAN = la ventana sera usada con vulkan
+	//con -DUSING_SDL2 en el compilador podemos definir si usamos SDL2 o SDL3
+	//hay que cambiar las macros o llamada a funciones por que son diferentes.	
 	#ifdef USING_SDL2
 		SDL_Init(SDL_INIT_VIDEO);
 		window = SDL_CreateWindow(
@@ -47,7 +45,9 @@ bool Application::initialize()
 			height,
 			SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE );
 	#else
+			//dice a SDL -> quiero activar el subsistema de video
 			SDL_InitSubSystem(SDL_INIT_VIDEO);
+			//SDL_WINDOW_VULKAN = la ventana sera usada con vulkan
 			window = SDL_CreateWindow("Vulkan SDL3", width, height, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE); 
 	#endif
 	
@@ -243,6 +243,12 @@ bool Application::initializeVulkan()
 bool Application::createVulkanInstance()
 {
 	// Initialize Volk and load Vk function pointers
+	/*por que no esta instalado el SDK, el llamar a una funcion de vulkan
+	directamente como vkCreateInstance crasearia. Es por ello que tenemos
+	que usar volk, que crea una tabla gigante de punteros a funciones y
+	cada vez que hagamos la llamada a la funcion, volk por debajo interceptara
+	esa llamada y localizara el puntero donde esta la direccion de memoria
+	de la GPU donde se guarda dicha instruccion*/
 	if (volkInitialize() != VK_SUCCESS)
 	{
 		showError("Error initializing Volk");
@@ -295,7 +301,8 @@ bool Application::createVulkanInstance()
 	{
 		return false;
 	}
-
+	//volkLoadInstance. Una vez creada la instancia, llama a la GPU y pide
+	//el resto de direcciones de memoria de las funciones restantes de Vulkan (buffers, texturas, shaders...)
 	volkLoadInstance(vulkanInstance);
 	return true;
 }
