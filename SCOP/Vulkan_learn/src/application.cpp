@@ -240,6 +240,12 @@ bool Application::initializeVulkan()
 	return true;
 }
 
+/*Vulkan está escrito en C. No es una instancia de una clase, sino un conjunto
+de datos que hace que me pueda comunicar con la GPU. Cuando creo la instancia
+se genera un HANDLE (manejador), que es una dirección de memoria a todos esos datos
+(supongo que un struct masivo). Se nos da "el carnet de socio" de dicha GPU
+Este HANDLE se meterá dentro de la variable que forma parte de la clase application
+si se busca en los datos privados, ahí está*/
 bool Application::createVulkanInstance()
 {
 	// Initialize Volk and load Vk function pointers
@@ -255,7 +261,10 @@ bool Application::createVulkanInstance()
 		return false;
 	}
 
-	// Create the vulkan application instance
+	/* Create the vulkan application instance. appInfo se meterá en
+	VkInstanceCreateInfo. Esta primera más básica es para inicializar
+	la segunda tiene todos los datos (2).
+	*/
 	VkApplicationInfo appInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
@@ -264,8 +273,12 @@ bool Application::createVulkanInstance()
 	};
 
 	uint32_t instExtCount = 0;
-	const char *const *extensions = nullptr;
+	const char *const *extensions = nullptr; //puntero a array de punteros a cadenas de texto de solo lectura. Son nombres de extensiones ("VK_KHR_surface", "blabla")
 
+	/*extensiones: caracteristica o funcionabilidad necesaria, que no forma parte del
+	nucleo de Vulkan pero que son necesarias para que Vulkan pueda comunicarse
+	con el gestor de ventanas y asi dibujar en pantalla. Sin ellas solo haria calculos
+	*/ 
 	#ifdef USING_SDL2
 		// Código para SDL2: Pedimos primero cuántas hay, y luego rellenamos un vector
     	SDL_Vulkan_GetInstanceExtensions(window, &instExtCount, nullptr);
@@ -275,8 +288,6 @@ bool Application::createVulkanInstance()
 	#else
     	// Código original para SDL3
     	extensions = SDL_Vulkan_GetInstanceExtensions(&instExtCount);	
-
-
 	#endif
 
 	//evitamos el layer de comprobacion por que no tengo instalado el sdk de vulkan. cuando este se puede dejar.
@@ -285,8 +296,12 @@ bool Application::createVulkanInstance()
 		"VK_LAYER_KHRONOS_validation"
 	}; */
 
+	/*las capas de validación que desconectamos aqui, son capas extra para
+	distinguir posibles errores, o pérdidas de memoria. Como no esta instalado el
+	SDK, no sabe al compilar donde buscar el compilador*/
 	std::vector<const char *> requestedLayers{};
 
+	//(2) Esta es la segunda info con todos los datos.
 	VkInstanceCreateInfo instCreateInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO,
@@ -297,6 +312,12 @@ bool Application::createVulkanInstance()
 		.ppEnabledExtensionNames = extensions
 	};
 
+	/*este es el que realmente crea la instancia. Al llamarse la función, como no
+	teniamos instalado el SDK, volk se encargará de decir donde está dicha función y funcionará.
+	metemos el primer info que era necesario y nullptr es el gestor de memoria(vkAllocationCallbacks).
+	Al dejarlo con nullptr, dejamos que sea por defecto
+	vulkanInstance es un puntero tipo VkInstance que es lo que me permitirá comunicarme
+	con Vulkan */
 	if (vkCreateInstance(&instCreateInfo, nullptr, &vulkanInstance) != VK_SUCCESS)
 	{
 		return false;
