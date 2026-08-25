@@ -171,24 +171,33 @@ void Application::run()
 
 bool Application::initializeVulkan()
 {
+	
+	//saca el "VkInstance vulkanInstance" de Application
+	//Datos de info e instancia para comunicarnos con Vulkan
 	if (!createVulkanInstance())
 	{
 		showError("Couldn't create a vulkan instance");
 		return false;
 	}
 
+	//saca el "VkSurfaceKHR surface" de Application
+	//Surface = canvas para dibujar lo que le pidamos
 	if (!createSurface())
 	{
 		showError("Couldn't create window surface");
 		return false;
 	}
 
+	//saca el "VkPhysicalDevice physicalDevice" de Application
+	//Encuentra GPU compatible con el formato de color que queramos.
 	if (physicalDevice = findPhysicalDevice(); !physicalDevice)
 	{
 		showError("Unable to find an appropriate physical device");
 		return false;
 	}
 
+	//saca el "gfxQueueFamIdx" de Application
+	//es el índice de las queue (proceso que se puede hacer en la GPU) que Dibuje y Se muestre en pantalla
 	if (!findGraphicsQueue())
 	{
 		showError("Unable to find a compatible graphics queue");
@@ -328,6 +337,14 @@ bool Application::createVulkanInstance()
 	return true;
 }
 
+/*La superficie es la parte de la ventana que se puede escribir. En lienzo. 
+el window es el marco, que se puede arrastrar, agrandar, etc...
+cada sistema operativo tiene su forma de hacer ventanas, y la función de Vulkan
+para llamar a dichas ventanas es diferente en cada OS.
+La Función SDL_Vulkan_CreateSurface dentro de SDL_vulkan.h se encarga de hacer
+ese trabajo sucio y saca la función apropiada y la información del surface a 
+escribir, almancenándolo en "surface" que es un puntero VkSurfaceKHR que está
+dentro de la clase Application*/
 bool Application::createSurface()
 {
 	#ifdef USING_SDL2
@@ -342,11 +359,13 @@ bool Application::createSurface()
 	return true;
 }
 
+/*Encuentra las GPUs que haya instalada en el equipo compatible con Vulkan y elige la mejor.*/
 VkPhysicalDevice Application::findPhysicalDevice()
 {
-	// enumerate all physical devices
+	// 1. Cuantas GPUs hay. Al pasarle nullptr le decimos que no me metas los datos en ningun sitio.
 	uint32_t physDeviceCount = 0;
 	vkEnumeratePhysicalDevices(vulkanInstance, &physDeviceCount, nullptr);
+	// 2. Crea un vector dinamico con ese tamaño y lo rellena de los HANDLES de las tarjetas
 	std::vector<VkPhysicalDevice> physicalDevices(physDeviceCount);
 	vkEnumeratePhysicalDevices(vulkanInstance, &physDeviceCount, physicalDevices.data());
 
@@ -360,15 +379,23 @@ VkPhysicalDevice Application::findPhysicalDevice()
 		{
 			VkPhysicalDeviceProperties props{};
 			vkGetPhysicalDeviceProperties(pDev, &props);
+			//DISCRETE es una GPU separada con su propia memoria VRAM
 			if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 			{
 				physicalDevice = pDev;
 				break;
 			}
 		}
+		//aqui está con una GPU dedicada o la primera que tuviera.
 	}
 
 	// ensure the desired swapchain format is supported
+	/*La GPU tiene unos formatos de imagen de como se almacenan los colores RGBA
+	El format, va a devolverle cuantos formatos es capaz de reconocer y cuantos bytes asigna
+	a cada uno de los colores. Puede ser por ejemplo:
+	VK_FORMAT_R8G8B8A8_UNORM (8bytes para RGBA), o VK_FORMAT_B8G8R8A8_SRGB (formato invertido BGRA)
+	No todas las GPU ni monitores leen los colores en el mismo orden.
+	La tarjeta devolverá todos los formatos que los metemos en un Vector dinámico.*/
 	uint32_t formatCount = 0;
 	vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
 	std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
@@ -377,13 +404,15 @@ VkPhysicalDevice Application::findPhysicalDevice()
 	bool formatSupported = false;
 	for (const VkSurfaceFormatKHR &surfFormat : surfaceFormats)
 	{
+		/*swapchainFormat viene de Application y se ha elegido el formato: VK_FORMAT_B8G8R8A8_SRGB
+		que es compatible con la mayoría de las tarjetas y monitores.*/
 		if (surfFormat.format == swapchainFormat)
 		{
 			formatSupported = true;
 			break;
 		}
 	}
-	if (!formatSupported)
+	if (!formatSupported) //se sale si no es soportado.
 	{
 		showError("Requested swapchain format is not supported by the surface");
 		return nullptr;
@@ -392,23 +421,41 @@ VkPhysicalDevice Application::findPhysicalDevice()
 	return physicalDevice;
 }
 
+/*La GPU es como una fábrica enorme con ventanas de trabajo (Cálculos matemáticos, Copia de
+datos de la RAM a la VRAM, Dibujar Triángulos, Enviar el dibujo final al monitor)
+Esto es el canal de comunicación que se conoce como QUEUEs*/
 bool Application::findGraphicsQueue()
 {
 	// eventually we'll have more complex queue lookup for presentation, etc
-	// grab all of the queue families
+	// 1. Pillamos toda la familia de Queues que exiten en la Tarjeta elegida (physicalDevice). Cuantos Queues tienes?
 	uint32_t queueFamCount = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &queueFamCount, nullptr);
+	// 2. Lo metenemos en un vector
 	std::vector<VkQueueFamilyProperties2> queueFamProps(queueFamCount, { VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2, nullptr });
 	vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &queueFamCount, queueFamProps.data());
 
+	/*Buscamos una queue que sepa dibujar y también sepa mostrarlo en pantalla, y guardamos ese
+	índice para usarlo después en el Logical Device*/
 	for (size_t currentFamIdx = 0; currentFamIdx < queueFamProps.size(); currentFamIdx++)
 	{
 		// ensure it has presentation support
+		//Tiene conexión física con la ventana de SDL (surface)		
 		VkBool32 hasPresentSupport = false;
 		vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, currentFamIdx, surface, &hasPresentSupport);
 
+		//Sabe dibujar?
 		const auto &props = queueFamProps[currentFamIdx];
 		// ensure this is a GRAPHICS queue with presentation support
+		/*queueFlags es un entero de 32bits en binario que cada 1 es un "lo hago" y un 0 "NO lo hago"
+		Para no hacer flags booleanas de lo que puede hacer o no cada "ventana" (queue), hacemos este sistema
+		y metemos todo en ese número.
+		Bit1: Graficos VK_QUEUE_GRAPHICS_BIT = 0x00000001
+		Bit2: Cálculo VK_QUEUE_COMPUTE_BIT = 0x00000002
+		Bit3: Copia datos VK_QUEUE_TRANSFER_BIT = 0x00000004
+		Si nos devuelve un Queue que tiene por ejemplo 00000010 es decir solo sabe computar, no me vale
+		ya que buscamos dibujar, pero si es 00000111 este si que sabe dibujar aunque haga otras cosas
+		asi que perfecto me sirve!
+		*/
 		if (props.queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT && hasPresentSupport)
 		{
 			gfxQueueFamIdx = currentFamIdx;
