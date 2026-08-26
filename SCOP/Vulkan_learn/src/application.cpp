@@ -477,7 +477,7 @@ el control de ella:
    Para ser más eficientes, buscamos las herramientas modernas (features) en la GPU.
 2. "abremos la fábrica", con vkCreateDevice y avisamos que vamos a usar ese queue
 3. con vkGetDeviceQueue nos darán el handler (direccion de memoria) de dicho queue
-4. con gfxQueue podré usar dicho handle para dibujar lo que quiera*/
+4. (fuera de la función) con gfxQueue podré usar dicho handle para dibujar lo que quiera*/
 bool Application::createDevice(VkPhysicalDevice physicalDevice)
 {
 	float queuePriority = 1.0f; //Le damos la prioridad máxima para procesar comandos a ese queue
@@ -523,7 +523,11 @@ bool Application::createDevice(VkPhysicalDevice physicalDevice)
 		return false;
 	}
 
+	// PASO 1. Buscamos las herramientas
 	// produce a separate features struct chain for device creation
+	/*La primera lista, era para preguntar las features existentes y las devolvia como una
+	lista. Y esta segunda que creamos es la petición de lo que necesitamos de cada modulo de Vulkan
+	*/
 /* 	VkPhysicalDeviceVulkan14Features features14
 	{
 		.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES,
@@ -544,6 +548,8 @@ bool Application::createDevice(VkPhysicalDevice physicalDevice)
 	};
 	VkPhysicalDeviceFeatures2 features{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = &features12 };
 
+	//VK_KHR_SWAPCHAIN_EXTENSION_NAME = le damos permiso a la GPU para que en el futuro use un swapchain
+	/*la Estructura devCreateInfo es necesaria para la creación de vkCreateDevice*/
 	const std::vector<const char *> deviceExtensions{ VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 	VkDeviceCreateInfo devCreateInfo
 	{
@@ -556,11 +562,13 @@ bool Application::createDevice(VkPhysicalDevice physicalDevice)
 		.pEnabledFeatures = nullptr // features struct chain is set in pNext
 	};
 
+	//PASO 2. abrimos la fábrica.
 	if (vkCreateDevice(physicalDevice, &devCreateInfo, nullptr, &device) != VK_SUCCESS)
 	{
 		return false;
 	}
 
+	// 3. PASO. Nos dan el handler de dicho queue y lo metemos en gfxQueue
 	// grab the VkQueue object finally
 	vkGetDeviceQueue(device, gfxQueueFamIdx, 0, &gfxQueue);
 	if (!gfxQueue)
