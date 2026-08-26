@@ -395,7 +395,10 @@ VkPhysicalDevice Application::findPhysicalDevice()
 	a cada uno de los colores. Puede ser por ejemplo:
 	VK_FORMAT_R8G8B8A8_UNORM (8bytes para RGBA), o VK_FORMAT_B8G8R8A8_SRGB (formato invertido BGRA)
 	No todas las GPU ni monitores leen los colores en el mismo orden.
-	La tarjeta devolverá todos los formatos que los metemos en un Vector dinámico.*/
+	La tarjeta devolverá todos los formatos que los metemos en un Vector dinámico.
+	swapchain = Es el formato de color + evitar el buster (parpadeo) que contine
+	2 ó 3 imágenes para intercambiarlas rápido.
+	*/
 	uint32_t formatCount = 0;
 	vkGetPhysicalDeviceSurfaceFormatsKHR(physicalDevice, surface, &formatCount, nullptr);
 	std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
@@ -421,9 +424,11 @@ VkPhysicalDevice Application::findPhysicalDevice()
 	return physicalDevice;
 }
 
-/*La GPU es como una fábrica enorme con ventanas de trabajo (Cálculos matemáticos, Copia de
-datos de la RAM a la VRAM, Dibujar Triángulos, Enviar el dibujo final al monitor)
-Esto es el canal de comunicación que se conoce como QUEUEs*/
+/*La GPU es como una fábrica enorme con diferentes cintas transportadoras de trabajo
+ (Cálculos matemáticos, Copia de datos de la RAM a la VRAM, Dibujar Triángulos, Enviar
+ el dibujo final al monitor)
+Esto es el canal de comunicación que se conoce como QUEUEs (cada una de esas "cintas" es un
+queue).*/
 bool Application::findGraphicsQueue()
 {
 	// eventually we'll have more complex queue lookup for presentation, etc
@@ -465,21 +470,45 @@ bool Application::findGraphicsQueue()
 	return false;
 }
 
-
+/*Antes obtuvimos el índice de una queue (cinta transportadora de nuestra fábrica GPU)
+que podía dibujar y mandar el dibujo a la pantalla. Ahora con esto vamos a tomar
+el control de ella:
+1. La Queue sabe hacer el trabajo. Es como un blueprint. PERO tiene herramientas base antiguas
+   Para ser más eficientes, buscamos las herramientas modernas (features) en la GPU.
+2. "abremos la fábrica", con vkCreateDevice y avisamos que vamos a usar ese queue
+3. con vkGetDeviceQueue nos darán el handler (direccion de memoria) de dicho queue
+4. con gfxQueue podré usar dicho handle para dibujar lo que quiera*/
 bool Application::createDevice(VkPhysicalDevice physicalDevice)
 {
-	float queuePriority = 1.0f;
+	float queuePriority = 1.0f; //Le damos la prioridad máxima para procesar comandos a ese queue
+	
+	/*No se utiliza (estaba en el tutorial), pero se puede usar para 
+	crear varias colas distintas como para gráficos, otra texturas, etc
+	en paralelo. PERO NO AQUI. Debería estar en la clase xejemplo: 
+	vector uint32_t gfxQueueFamIdx y vector uint32_t transferQueueFamInx*/
 	std::vector<uint32_t> queueFamiles{ gfxQueueFamIdx };
 
+	//vkCreateDevice lo necesita esta variable.
 	VkDeviceQueueCreateInfo gfxQueueInfo
 	{
-		.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO,
-		.queueFamilyIndex = gfxQueueFamIdx,
-		.queueCount = 1,
-		.pQueuePriorities = &queuePriority
+		.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO, //qué tipo de estructura es
+		.queueFamilyIndex = gfxQueueFamIdx,//el índice del queue encontrado antes
+		.queueCount = 1,//cuantos QUEUEs voy a abrir de el tipo que busco
+		//la prioridad. Se pasa *float por .queueCount ya que asi se leeria mas rapido al pasarse por array. 
+		//En caso de queueCount = 3, priorities[3] = {1.0f, 0.5f, 0.2f} se pasa el puntero a la primera y tienes todos.
+		.pQueuePriorities = &queuePriority 
 	};
 
 	// query suppoted features
+	/*Aqui buscamos las herramientas modernas. Primero se llama a Features2, que es Vulkan 1.1
+	Como cada versión incluyó mas features (herramientas), para no perder la retrocompatibilidad
+	se creó una lista enlazada (cadena de structuras pNext chain) con los datos de las nuevas
+	herramientas.
+	Al final le pasamos esas features a vkGetPhysicalDeviceFeatures2 que modificará los
+	objetos en memoria y los rellenará con VK_TRUE o VK_FALSE al pasarle la & de esa primera
+	estructura podrá seguir hasta la última 1.3 o 1.4.
+	Comento la linea de 14 por que no está instalada en 42, pero aunque estuviera, no aporta
+	grandes cambios y compilaría.*/
 	//VkPhysicalDeviceVulkan14Features supportedFeatures14{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES, .pNext = nullptr };
 	VkPhysicalDeviceVulkan13Features supportedFeatures13{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES, .pNext = nullptr };
 	VkPhysicalDeviceVulkan12Features supportedFeatures12{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, .pNext = &supportedFeatures13 };
