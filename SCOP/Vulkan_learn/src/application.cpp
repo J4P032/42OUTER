@@ -222,7 +222,8 @@ bool Application::initializeVulkan()
 		return false;
 	}
 
-
+	//Configurará y creará el swapchain(formato de color y num de imagenes a volcar) de Vulkan más los
+	//semáforos para controlar los procesos de creación de la imágenes.
 	if (!createSwapchain(width, height))
 	{
 		showError("Unable to create swapchain");
