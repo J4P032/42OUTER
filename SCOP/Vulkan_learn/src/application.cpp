@@ -198,23 +198,30 @@ bool Application::initializeVulkan()
 
 	//saca el "gfxQueueFamIdx" de Application
 	//es el índice de las queue (proceso que se puede hacer en la GPU) que Dibuje y Se muestre en pantalla
+	//solo nos da información.
 	if (!findGraphicsQueue())
 	{
 		showError("Unable to find a compatible graphics queue");
 		return false;
 	}
 
+	//sacamos el device que almacenaremos en device de Application y el queue que almacenamos en gfxQueue de Application
+	//Tenemos el índice del queue. Ahora buscamos las herramientas de updates de Vulkan para hacerlo
+	//y abrimos la gpu para que nos de el handler para hacer peticiones a ese queue
 	if (!createDevice(physicalDevice))
 	{
 		showError("Couldn't create the logical GPU device");
 		return false;
 	}
 
+	//saca el vmaAllocator de Application
+	//prepara la memoria de la GPU para ser reservada. NO LA RESERVA. Eso lo hará vmaCreateBuffer.
 	if (!initializeVMA())
 	{
 		showError("Unable to create Vulkan Memory Allocator");
 		return false;
 	}
+
 
 	if (!createSwapchain(width, height))
 	{
@@ -579,6 +586,13 @@ bool Application::createDevice(VkPhysicalDevice physicalDevice)
 	return true;
 }
 
+/*Esto es como un malloc. Reserva la memoria dentro de la GPU para almacenar
+las posiciones de los vértices. PERO AQUI NO RESERVAMOS.. sino que le pedimos al sistema
+que vamos a reservar. Es una INICIALIZACIÓN
+Como todo en Vulkan necesita componer un info, para mandarle dicha estructura
+a la funcion que aloca la memoria
+los datos se obtienen mediante funcionesde Vulkan vkGetInstanceProcAddr, vkGetDeviceProcAddr
+que como usamos Volk en el principio, este se encarga de enlazar y ejecutar */
 bool Application::initializeVMA()
 {
 	VmaVulkanFunctions vmaFuncInfo{};
@@ -607,11 +621,23 @@ bool Application::initializeVMA()
 }
 
 
+/*Aquí se construye el almacén de imágenes para la pantalla. Pero todavia no se componen
+solo SE PREPARAN para que estén disponibles.
+1. Preguntamos a la pantalla de SDL (surface) qué limites tiene
+2. Configuramos y creamos el Swapchain
+3. Extraer las imágenes y crear las vistas con vkImageView
+4. Semáforos de sincronización renderCompleteSemaphores
+5. ZBuffering para profundidad 3D (no necesario para el triángulo) depthImageView
+*/
 bool Application::createSwapchain(uint32_t width, uint32_t height)
 {
 	swapchainWidth = width;
 	swapchainHeight = height;
 
+	/*1. NO es el tamaño del escritorio. Los límites son las capacidades del driver
+	de la GPU y de la ventana que creó SDL. Son para el número de imágenes min y max acepta el sistema
+	operativo para hacer intercambio de buffers. O transformaciones, por ejemplo
+	rotaciones en móviles (girar pantalla) o no.*/
 	VkSurfaceCapabilitiesKHR surfaceCaps{};
 	if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCaps) != VK_SUCCESS)
 	{
@@ -619,19 +645,21 @@ bool Application::createSwapchain(uint32_t width, uint32_t height)
 		return false;
 	}
 
+	//2. Creamos el Swapchain.
+	//rellenamos el info para meterlo en la funcion
 	VkSwapchainCreateInfoKHR swapchainCreateInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR,
 		.surface = surface,
-		.minImageCount = surfaceCaps.minImageCount,
-		.imageFormat = swapchainFormat,
+		.minImageCount = surfaceCaps.minImageCount, //el num minimo de imagenes superpuestas para evitar el flick. Normalmente 2 o 3
+		.imageFormat = swapchainFormat, //el formato del color. RGBa, BGRa, etc..
 		.imageColorSpace = VK_COLORSPACE_SRGB_NONLINEAR_KHR,
-		.imageExtent{.width = swapchainWidth, .height = swapchainHeight },
+		.imageExtent{.width = swapchainWidth, .height = swapchainHeight },//tamaño de la ventana en píxeles
 		.imageArrayLayers = 1,
 		.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT,
 		.preTransform = VK_SURFACE_TRANSFORM_IDENTITY_BIT_KHR,
 		.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR,
-		.presentMode = VK_PRESENT_MODE_FIFO_KHR
+		.presentMode = VK_PRESENT_MODE_FIFO_KHR //activa el V-Sync para evitar el tearing
 	};
 
 	if (vkCreateSwapchainKHR(device, &swapchainCreateInfo, nullptr, &swapchain) != VK_SUCCESS)
@@ -640,7 +668,16 @@ bool Application::createSwapchain(uint32_t width, uint32_t height)
 		return false;
 	}
 
+	//3. PREPARO las imagenes.
+	/*como en minilibx teniamos que componer la imagen para luego pushearla
+	a la pantalla y asi no generar parpadeos componiendo por píxeles.
+	Pues esto es lo mismo, pero en vez de una imagen de minilibx son 2 o 3 (las
+	que se hayan puesto en minImageCount), asi mientras se vuelca una
+	la gpu está haciendo otra por detrás.*/
 	// grab the swapchain images
+	/*3a. Podriamos pensar que ya teniamos el número de imágenes a componer en
+		.minImageCount.. pero ese es el MINIMO. El driver de la GPU y el SO puede darte más
+		entonces sacamos el número que tiene, llamando con nullptr, y luego lo metemos en el vector*/
 	uint32_t imageCount = 0;
 	vkGetSwapchainImagesKHR(device, swapchain, &imageCount, nullptr);
 	swapchainImages.resize(imageCount);
@@ -664,6 +701,7 @@ bool Application::createSwapchain(uint32_t width, uint32_t height)
 			}
 		};
 
+		//aquí creo cada imagen
 		if (vkCreateImageView(device, &imgViewInfo, nullptr, &swapchainImageViews[i]) != VK_SUCCESS)
 		{
 			showError("Error creating swapchain image view");
@@ -672,6 +710,9 @@ bool Application::createSwapchain(uint32_t width, uint32_t height)
 	}
 
 	// semaphores used to signal render completion
+	/* pillo el numero de imagenes que hay y creo un semáforo por cada uno de
+	ellos metiéndolo en el vector renderCompleteSemaphores
+	Solo crea los semáforos, pero no gestiona. Lo haremos después*/
 	renderCompleteSemaphores.resize(swapchainImages.size());
 	for (VkSemaphore &semaphore : renderCompleteSemaphores)
 	{
@@ -684,6 +725,9 @@ bool Application::createSwapchain(uint32_t width, uint32_t height)
 	}
 
 	// create depth image
+	/*Como se puede ver tiene otro vkCreateImageView. Esto es por que el 
+	zbuffer es otra imagen igual pero en escala de grises (negro cercano, blanco lejano)
+	*/
 	VkImageCreateInfo depthCreateInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO,
@@ -717,6 +761,7 @@ bool Application::createSwapchain(uint32_t width, uint32_t height)
 		.format = depthFormat,
 		.subresourceRange{.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT, .levelCount = 1, .layerCount = 1}
 	};
+	//segundo create image view para el zbuffer
 	if (vkCreateImageView(device, &depthImgViewInfo, nullptr, &depthImageView) != VK_SUCCESS)
 	{
 		showError("Error creating depth image view");
