@@ -806,7 +806,7 @@ VkShaderModule Application::createShaderModule(const std::string &fileName, shad
 {
 	// read shader file from disk
 	const std::string shaderPath = "src/shaders/" + fileName;
-	const std::string src = readTextFile(shaderPath);
+	const std::string src = readTextFile(shaderPath); //todo el código con '\n' incluido en 'src'
 	if (src.empty())
 	{
 		showError("Specified shader file doesn't exist: " + shaderPath);
@@ -814,6 +814,12 @@ VkShaderModule Application::createShaderModule(const std::string &fileName, shad
 	}
 
 	// compile the shader to SPIR-V
+	/* Los shaders son código que representa 3D en la pantalla. Pueden calcular reflejos,
+	bump, etc...
+	SPIR-V es código binario que entiende Vulkan. Los Shaders están en código, lenguaje
+	GLSL, que viene de OpenGL y utiliza Vulkan.
+	La librería incluida en shaderc/shaderc.hpp es la que se encarga de convertirlo a
+	SPIR-V*/
 	std::cout << "Compiling shader: " << shaderPath << std::endl;
 	shaderc::Compiler compiler;
 	shaderc::CompileOptions opts;
@@ -827,6 +833,7 @@ VkShaderModule Application::createShaderModule(const std::string &fileName, shad
 		std::cerr << "Shader Compilation Error: " << result.GetErrorMessage() << std::endl;
 		return nullptr;
 	}
+	//copiamos ese result que son en binario enorme, entero al vector spv.
 	std::vector<uint32_t> spv = { result.cbegin(), result.cend() };
 
 	// pass spir-v to vulkan and create shader-module
@@ -834,7 +841,7 @@ VkShaderModule Application::createShaderModule(const std::string &fileName, shad
 	{
 		.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO,
 		.codeSize = spv.size() * sizeof(uint32_t),
-		.pCode = spv.data()
+		.pCode = spv.data() //vulkan esta en C y no entiende vector de c++ por ello con .data() le pasamos el puntero al primer elemento.
 	};
 	VkShaderModule shaderModule = nullptr;
 	if (vkCreateShaderModule(device, &moduleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS)
@@ -845,6 +852,8 @@ VkShaderModule Application::createShaderModule(const std::string &fileName, shad
 	return shaderModule;
 }
 
+//Carga los shaders que están en /shaders/ para ser luego usados.
+//Transforma el código GLSL(openGL shading Language) en codigo binario para ser leido por Vulkan.
 bool Application::createShaders()
 {
 	// create the shader modules that we'll need for the graphics pipeline
