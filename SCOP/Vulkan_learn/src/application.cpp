@@ -230,12 +230,14 @@ bool Application::initializeVulkan()
 		return false;
 	}
 
+	//carga los dos shaders VkShaderModule en Application
 	if (!createShaders())
 	{
 		showError("Error creating shader modules");
 		return false;
 	}
 
+	//Prepara el contrato de trabajo de lo que hacer el queue.
 	if (pipeline = createGraphicsPipeline(); !pipeline)
 	{
 		showError("Unable to initialize the graphics pipeline");
@@ -868,13 +870,31 @@ bool Application::createShaders()
 	return true;
 }
 
+/*Es la cadena de montaje de la GPU
+1. vkCreatePipelineLayout -> Configura el Layout, que es el espacio reservado
+	para saber si al shader le vamos a pasar variables globales cambiantes (como matrices
+	de rotación para SCOP).
+	//setLayoutCount = 0, por que no tiene ninguna variable exterior.
+	El triángulo no variará por interacción del usuario 
+2.	VkPipelineShaderStageCreateInfo -> Carga Shaders
+3.	VkPipelineVertexInputStateCreateInfo -> Define como leer los vértices de la memoria
+4.	VkPipelineInputAssemblyStateCreateInfo -> Dice a la GPU como interpretar los puntos
+5.	VkPipelineDepthStencilStateCreateInfo -> Activa el ZBuffer
+6.	VkPipelineViewportStateCreateInfo -> Define el tamaño del lienzo
+7.	VkPipelineRasterizationStateCreateInfo -> Convierte las lineas matemáticas en pixeles. Como se pinta la geometría
+8.	VkPipelineColorBlendStateCreateInfo -> Mezcla de los colores
+9. 	VkPipelineRenderingCreateInfo -> Gracias a Vulkan1.3 se puede usar dynamic rendering
+10. VkGraphicsPipelineCreateInfo -> El contrato final.
+*/
 VkPipeline Application::createGraphicsPipeline()
 {
-	// need to define a pipeline layout
+	
+	//1. need to define a pipeline layout. 0 no matriz de rotación.
+	//el cambio de forma por reajuste de ventana viene en el paso 6.
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-		.setLayoutCount = 0,
+		.setLayoutCount = 0, 
 		.pushConstantRangeCount = 0
 	};
 	if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
@@ -883,8 +903,8 @@ VkPipeline Application::createGraphicsPipeline()
 		return nullptr;
 	}
 
-	// configure the shader stages struct
-	const char *entryPoint = "main";
+	//2.  configure the shader stages struct. Carga los dos shaders.
+	const char *entryPoint = "main"; //le dice a la GPU que la función para empezar a trabajar se llama 'main' (la del shader en codigo GLSL)
 	std::vector<VkPipelineShaderStageCreateInfo> shaderStages
 	{
 		{
@@ -901,20 +921,39 @@ VkPipeline Application::createGraphicsPipeline()
 		}
 	};
 
-	// vertex pulling, don't define vertex input details
+	//3. vertex pulling, don't define vertex input details
+	//Está vacia por que los vértices están metidos en el shader.
+	/*COMENTADO ESTA LA INFO DEL SCOP. Es el mapa de carreteras para que la GPU sepa interpretar los bytes del OBJ. Los puntos no están todavía.
+	1. VkVertexInputBindingDescription -> el cable. Velocidad a avanzar por la memoria. Vas a leer del slot 0 y cada vértice ocupa sizeof(Vect3) bytes
+	2.	VkVertexInputAttributeDescription -> el formato. qué es cada campo dentro de los bytes. 
+		"En el canal 0 hay datos de tipo VK_FORMAT_R32G32B32_SFLOAT (es decir, 3 floats de 32 bits, tu X, Y, Z) y empiezan en el byte 0" "
+		Con esto, la tubería queda programada para saber que cuando le envíes el buffer del OBJ, debe trocear los bytes de 3 en 3 floats para alimentar al Vertex Shader.
+		*/
 	VkPipelineVertexInputStateCreateInfo vertInputInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
+		/* para SCOP:
+			.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+    		.vertexBindingDescriptionCount = 1,
+    		.pVertexBindingDescriptions = &miBindingDescription,   // El cable
+    		.vertexAttributeDescriptionCount = 1,
+    		.pVertexAttributeDescriptions = &miAttributeDescription // El formato
+		*/
 	};
 
-	// input assembly, we'll be drawing triangle lists
+	//4. input assembly, we'll be drawing triangle lists
+	//al poner VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST le dice que espere 3 puntos y dibuje el triángulo
 	VkPipelineInputAssemblyStateCreateInfo inputAssemblyInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO,
 		.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST
 	};
 
-	// depth/stencil configuration
+	//5. depth/stencil configuration
+	// al poner: VK_COMPARE_OP_LESS = si el nuevo pixel está más cerca, que el que ya estaba pintado, lo dibujará encima.
+	/* para optimizar por que aqui dibuja 2 pixeles, podemos transformar en la CPU
+	los objetos por boundyBox y calculamos la distancia a la camara, luego los ordenamos por distancia
+	y ya hacemos el calculo con VK_COMPARE_OP_LESS*/
 	VkPipelineDepthStencilStateCreateInfo depthStencilInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO,
@@ -924,8 +963,9 @@ VkPipeline Application::createGraphicsPipeline()
 		.stencilTestEnable = VK_FALSE
 	};
 
-	// dynamic rendering allows to set this up...dynamically
+	//6. dynamic rendering allows to set this up...dynamically
 	// we still need this struct though
+	// al ponerle 
 	VkPipelineViewportStateCreateInfo viewportInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO,
@@ -935,12 +975,13 @@ VkPipeline Application::createGraphicsPipeline()
 		.pScissors = nullptr
 	};
 
-	// rasterizer settings
+	//7. rasterizer settings
+	//El formato de como se pinta dicha geometría
 	VkPipelineRasterizationStateCreateInfo rasterInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-		.polygonMode = VK_POLYGON_MODE_FILL,
-		.cullMode = VK_CULL_MODE_BACK_BIT,
+		.polygonMode = VK_POLYGON_MODE_FILL, //Triángulo relleno, no solo lineas
+		.cullMode = VK_CULL_MODE_BACK_BIT, //Backcull. No pinta la geometria de atrás.
 		.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
 		.lineWidth = 1.0f,
 	};
@@ -952,11 +993,12 @@ VkPipeline Application::createGraphicsPipeline()
 		.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT
 	};
 
-	// Alpha-blending (disabled for now), still need
+	// 8.Alpha-blending (disabled for now), still need
 	// attachment info and write mask
+	// Configura las transparencias (alpha blending)
 	VkPipelineColorBlendAttachmentState attachState
 	{
-		.blendEnable = VK_FALSE,
+		.blendEnable = VK_FALSE, //alphablend en falso. Color 100% opaco
 		.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
 			VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT
 	};
@@ -967,7 +1009,10 @@ VkPipeline Application::createGraphicsPipeline()
 		.pAttachments = &attachState
 	};
 
-	// enable dynamic state
+	// 6b. enable dynamic state
+	// No importa el tamaño del lienzo por ahora, ya lo dirá en tiempo real.
+	// eso último lo marca: VK_DYNAMIC_STATE_VIEWPORT
+	// Con esto y VK_DYNAMIC_STATE_SCISSOR el dibujo se adapta al resize de la pantalla
 	std::vector<VkDynamicState> dynamicState
 	{
 		VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR
@@ -979,7 +1024,8 @@ VkPipeline Application::createGraphicsPipeline()
 		.pDynamicStates = dynamicState.data()
 	};
 
-	// structure required for dynamic rendering
+	//9. structure required for dynamic rendering
+	//Se avisa a la pipe el formato de color a pasar swapchainFormat
 	VkPipelineRenderingCreateInfo renderInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_RENDERING_CREATE_INFO,
@@ -988,7 +1034,7 @@ VkPipeline Application::createGraphicsPipeline()
 		.depthAttachmentFormat = depthFormat
 	};
 
-	// Create the graphics pipeline
+	//10. Create the graphics pipeline
 	VkGraphicsPipelineCreateInfo pipelineInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
