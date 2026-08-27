@@ -255,6 +255,9 @@ bool Application::initializeVulkan()
 		return false;
 	}
 
+	//Los trabajos no se hacen uno a uno, sino por un set de commandos.
+	//Estos han de crearse en un buffer para soltarlo todo. Aquí se realiza el trabajo...
+	//...de construcción de dicho buffer.
 	if (!createCommandBuffers())
 	{
 		showError("Couldn't create command buffer objects");
@@ -1107,6 +1110,16 @@ bool Application::createSyncResources()
 	return true;
 }
 
+/*Es el Block de notas donde apuntar las órdenes de dibujo en cada fotograma
+No se le dice "dibuja esto ahora" sino que se graban todas las órdenes en un command buffer
+y luego se lanza el buffer entero a la gfxQueue.
+Se crean dos herramientas por cada fotograma (frameResources)
+1.	VkCommandPool -> La fábrica de hojas. Porción de memoria asignada de donde se sacan los blocs de notas
+	se borra de memoria por entero en cada fotograma cuando termina la GPU de dibujar cada frame. Mejor rendimiento
+	se le pasa por el queue que sabe hacer el trabajo gfxQueueFamIdx
+2.	vkCommandBuffer -> el block de notas en si. Con vkAllocateCommandBuffers se saca una "hoja" del pool anterior
+*/
+
 bool Application::createCommandBuffers()
 {
 	for (FrameResources &res : frameResources)
@@ -1128,8 +1141,8 @@ bool Application::createCommandBuffers()
 		{
 			.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO,
 			.commandPool = res.commandPool,
-			.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY,
-			.commandBufferCount = 1,
+			.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY, //block de notas principal que se puede mandar directo al queue de la GPU
+			.commandBufferCount = 1, //Solo un block por frame para ver el triángulo.
 		};
 
 		if (vkAllocateCommandBuffers(device, &cmdAllocInfo, &res.commandBuffer) != VK_SUCCESS)
