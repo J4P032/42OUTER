@@ -224,6 +224,8 @@ bool Application::initializeVulkan()
 
 	//Configurará y creará el swapchain(formato de color y num de imagenes a volcar) de Vulkan más los
 	//semáforos para controlar los procesos de creación de la imágenes.
+	//estos semáforos controlan el FINAL del dibujo. La GPU termina de pintar el triángulo entonces activa este semáforo.
+	//..Avisan a la pantalla que ya pueden mostrar la imagen 
 	if (!createSwapchain(width, height))
 	{
 		showError("Unable to create swapchain");
@@ -244,6 +246,9 @@ bool Application::initializeVulkan()
 		return false;
 	}
 
+	//configura la CPU y GPU para sincronizarse juntos y no haya 'atropellos'
+	//Se usan semáforos pero estos controlan el INICIO del dibujo. El código pide una imagen...
+	//...el swapchain tarda unos milisegundos en darla y activa este semáforo. La GPU ve verde y empieza a dibujar.
 	if (!createSyncResources())
 	{
 		showError("Couldn't create the sync related resources");
@@ -1060,6 +1065,14 @@ VkPipeline Application::createGraphicsPipeline()
 	return pipeline;
 }
 
+/*VK_SEMAPHORE_TYPE_TIMELINE es un semáforo que no es binario, sino un contador numérico (un marcador de turnos)
+Cuenta el fotograma en el que está trabajando la GPU para no mandar la CPU que trabaje en otra
+más avanzada.
+imageAcquiredSemaphore es un semáforo binario por cada fotograma en vuelo que permitimos en la struct frameResource
+Este semáforo binario controla el momento exacto en que el Swapchain entrega una imagen:
+"toma este semáforo. Cuando me des la imagen de la ventana, ponlo en verde (signal)". La GPU
+esperará a que este semáforo cambie a verde antes de ejecutar el vertex shader del triángulo.
+*/
 bool Application::createSyncResources()
 {
 	VkSemaphoreTypeCreateInfo semaphoreTypeInfo
