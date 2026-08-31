@@ -784,6 +784,7 @@ bool Application::createSwapchain(uint32_t width, uint32_t height)
 
 void Application::destroySwapchain()
 {
+	//recorremos el vector y vamos eliminando cada dato.
 	for (VkImageView swapchainImgView : swapchainImageViews)
 	{
 		vkDestroyImageView(device, swapchainImgView, nullptr);
@@ -1154,17 +1155,67 @@ bool Application::createCommandBuffers()
 	return true;
 }
 
+
+/*	1. Control de Redimensión
+	2. Sincronización Timeline
+	3. Captura de Imagen
+	4. Barreras de Memoria
+	5. Dibujo dinámico
+	6. Envio y Presentación	*/
 void Application::render()
 {
 	// first check if our swapchain is still valid
-	if (requireSwapchainRecreate)
+	/*1. Si cambiamos el tamaño de la ventana, el viejo lienzo no sirve
+		Destruimos el Swapchain anterior y creamos uno nuevo*/
+	if (requireSwapchainRecreate) //primera vez es false
 	{
-		vkDeviceWaitIdle(device);
+		vkDeviceWaitIdle(device); //Pausa la CPU
 		destroySwapchain();
 		createSwapchain(width, height);
 		requireSwapchainRecreate = false;
 	}
 
+	/*2.CREAMOS DOS CAJONES para hacer el trabajo.
+		frameResIndex es el indice de esos dos cajones que será 0 ó 1.
+		En ellos metemos las herramientas que la CPU necesita para preparar un frame. 
+		Son 2 por que si fuera 1, se pararía la CPU ya que tiene que esperar a la GPU para
+		que procese el pedido. La CPU es más rápida que la GPU y se sigue parando
+		cuando vuelve al cajón 0, pero se obtiene mejor rendimiento. Es un trade off
+		Con 1 solo cajón habría cero input lag, pero el rendimiento sería la mitad.
+		No añadir más "cajones" haría el cuadruple de rendimiento, ya que la GPU ya estaría
+		trabajando al 100% de su rendimiento.
+			MaxFramesInFlight son los frames que va a procesar la CPU y que están 
+		POR DELANTE de petición sobre la GPU. Normalmente son 2, como está inicializado
+		y no se ponen más para que no haya input lag en la imagen. No tiene que ver
+		con el número de imágenes que puede procesar la GPU en el Swapchain (normalmente 3 ó 4)
+		frameIndex es uint64_t y es un contador de frames, pero necesita ser 64bits por que 
+		se utiliza Timeline Semaphores, que no son 0-1 sino avanzan hacia adelante como un 
+		contador de km de un coche. NO hace overflow por que a 60fps tardaría 10.000 millones de años
+		en desbordarse.
+		
+		Las signals en Vulkan es dar luz verde. El timelineSemaphore empieza en 0. Cuando la GPU
+		termina de pintar un frame, señaliza subiendo su valor y SIEMPRE tiene que ser un valor
+		mayor. Por eso se usa uint64_t.
+		nextSignalValue, empieza en 3 por que la CPU necesita que los valores de sincronización
+		vayan por delante 
+		
+		vkWaitSemaphores mira el valor actual del semáforo en la GPU y lo compara
+		con el waitValue.
+			Valor_GPU >= waitvalue -> la CPU se para 0ms. No se para
+			Valor_GPU < waitValue -> la CPU se para hasta que alcance el waitValue
+		El valor inicial de dicho semáforo era creado en la inicialización de VkSemaphoreTypeCreateInfo:
+		.initialValue = MaxFramesInFlight, que en este caso es 2.
+		Ese 2 no se actualizará hasta que se dibuje cada fotograma en la GPU. Por eso
+		para cada dos si la GPU no ha actualizado.
+		
+		Una vez que el semáforo da luz verde a la CPU,
+		FrameResources &res = frameResources[frameResIndex]; guarda la direccion de memoria
+		del cajón que toca usar (0 ó 1). 
+		vkResetCommandPool vacía el cajón de datos. Lo resetea. 
+		*/
+		
+
+	
 	const uint32_t frameResIndex = frameIndex++ % MaxFramesInFlight;
 	const uint64_t signalValue = nextSignalValue++;
 	const uint64_t waitValue = signalValue - MaxFramesInFlight;
@@ -1182,6 +1233,11 @@ void Application::render()
 	FrameResources &res = frameResources[frameResIndex];
 	vkResetCommandPool(device, res.commandPool, 0);
 
+
+	/*3. vkAcquireNextImageKHR le pide al monitor una imagen vacia para empezar a pintar
+		en ella.
+		Si el monitor dice que se quedó obsoleta (VK_ERROR_OUT_OF_DATE_KHR), activamos la 
+		redimensión*/
 	// get the resources for this frame
 	VkSemaphore imageAcquireSemaphore = frameResources[frameResIndex].imageAcquiredSemaphore;
 
@@ -1189,6 +1245,13 @@ void Application::render()
 	VkResult acquireResult = vkAcquireNextImageKHR(device, swapchain, UINT64_MAX, imageAcquireSemaphore, VK_NULL_HANDLE, &imageIndex);
 
 	// handle resize and out-of-date images, may need swapchain recreate
+	/* requireSwapchainRecreate es la que permite arriba en el paso 1, que se haga
+		un nuevo Swapchain. Este primer evento VK_ERROR_OUT_OF_DATA_KHR no parece que 
+		haga mención al resize, que también tiene que cambiar el Swapchain, pero es que
+		este VK_ERROR_OUT_OF_DATA_KHR salta, cuando se ha hecho un resize. Por eso no usamos
+		el evento SDL_EVENT_WINDOW_RESIZED que está en el if de Application::run()
+		Por ello no hace falta añadir un requireSwapchainRecreate = true; en ese if. Este cubre
+		los dos.*/
 	if (acquireResult == VK_ERROR_OUT_OF_DATE_KHR)
 	{
 		requireSwapchainRecreate = true;
@@ -1208,6 +1271,10 @@ void Application::render()
 	};
 	vkBeginCommandBuffer(res.commandBuffer, &cmdBeginInfo);
 
+	/*4.	vkCmdPipelineBarrier2 -> Las imágenes en Vulkan necesitan cambiar de
+		estado para que los chips de la GPU sepan que hacer con ellas.
+		Imagen de Color: Cambia de estado "desconocido" a "optimizado para recibir color"
+		depthImage: Cambai a "Optimizado para pruebas de profundidad"*/
 	// transition the color and depth images
 	std::vector<VkImageMemoryBarrier2> layoutBarriers
 	{
@@ -1256,6 +1323,15 @@ void Application::render()
 	};
 	vkCmdPipelineBarrier2(res.commandBuffer, &depInfo);
 
+	
+	/*5.	vkCmdBeginRendering activa el lienzo usando las configuracionde de color
+		y profundidad directamente.
+			vkCmdSetViewport y vkCmdSetScissor: Definen la región exacta de la pantalla 
+		donde se va a pintar.
+		vkCmdBindPipeline: Carga el shader de vértices y fragmentos	
+		vkCmdDraw(..., 3, ...) dibuja los 3 vértices del triángulo
+		vkCmdPipelineBarrier2 (el segundo): Devuelve la imagen de color al estado "Listo
+		para mostrar en pantalla */
 	// setup the attachments (color and depth) and begin rendering (dynamic)
 	VkRenderingAttachmentInfo colorAttachInfo
 	{
@@ -1315,6 +1391,11 @@ void Application::render()
 	// end dynamic rendering
 	vkCmdEndRendering(res.commandBuffer);
 
+
+	/*6.	vkQueueSubmit2: Envía todo este paquete de órdenes grabado a la cola de la GPU
+		(gfxQueue) para que empiece a trabajar
+		vkQueuePresentKHR: Le dice al monitor: "Oye, la GPU ya ha terminado, pon esta imagen
+		terminada (imageIndex) en la pantalla del usuario"*/
 	// transition the image from color attachment to presentation so we can show it
 	VkImageMemoryBarrier2 presentLayoutBarrier
 	{
