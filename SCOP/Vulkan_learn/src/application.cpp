@@ -1192,7 +1192,13 @@ void Application::render()
 		se utiliza Timeline Semaphores, que no son 0-1 sino avanzan hacia adelante como un 
 		contador de km de un coche. NO hace overflow por que a 60fps tardaría 10.000 millones de años
 		en desbordarse.
-		
+			Estos cajones es una estructura de 3 datos:
+			A. VkCommandPool -> Es el almacén de memoria. El espacio de mem, reservado en la GPU
+				para guardar commandos de dibujo. Le hacemos peticiones para grabar los comandos
+			B. VkCommandBuffer -> La lista de órdenes. Nace de la memoria dada por VkCommandPool
+			C. VkSemaphore -> avisa a la GPU de que el monitor ya le ha asignado una imagen del
+				Swapchain limpia.
+
 		Las signals en Vulkan es dar luz verde. El timelineSemaphore empieza en 0. Cuando la GPU
 		termina de pintar un frame, señaliza subiendo su valor y SIEMPRE tiene que ser un valor
 		mayor. Por eso se usa uint64_t.
@@ -1211,7 +1217,8 @@ void Application::render()
 		Una vez que el semáforo da luz verde a la CPU,
 		FrameResources &res = frameResources[frameResIndex]; guarda la direccion de memoria
 		del cajón que toca usar (0 ó 1). 
-		vkResetCommandPool vacía el cajón de datos. Lo resetea. 
+		vkResetCommandPool vacía el cajón de datos. Lo resetea, pero también nos da la memoria
+		necesaria para rellenar de comandos
 		*/
 		
 
@@ -1236,6 +1243,24 @@ void Application::render()
 
 	/*3. vkAcquireNextImageKHR le pide al monitor una imagen vacia para empezar a pintar
 		en ella.
+		VkSemaphore es un semáforo binario (0 ó 1). Existen dos. Uno en cada "cajón" de
+		frameResources. El que se encarga de alterarlo es vkAcquireNextImageKHR, que es el que 
+		lo manda internamente al monitor (sistema de ventanas). en el mseg en que tenga una
+		imagen libre y lista para pintarla, el monitor enciende el semáforo.
+		Para cambiar el estado del Semáforo se le pasa imageAcquireSemaphore, que es un PUNTERO
+		y por lo tanto puede ser cambiado.
+
+		imageIndex es un entero que se altera por puntero (&) el valor. Es el índice o posición
+		del lienzo físico dentro del array de imágenes del Swapchain, que el monitor ha asignado para ese frame.
+			Si imageIndex == 0 -> luz verde para pintar primera imagen del Swapchain
+			imageIndex == 1 -> Segunda... etc...
+		Luego se usa en las barreras de memoria (.image = swapchainImages[imageIndex] : qué imagen
+		debo preparar para recibir color)
+		; en el dibujo dinámico (.imageView = swapchainImageViews[imageIndex]: dice al lienzo
+		dinámico en qué pantalla debe estampar el dibujo); Al enviar al monitor (.pImageIndices = &imageIndex: se
+		le dice a vkQueuePresentKHR cual de las imágenes del Swapchain acabo de terminar
+		de pintar para mostrarla en el monitor)
+
 		Si el monitor dice que se quedó obsoleta (VK_ERROR_OUT_OF_DATE_KHR), activamos la 
 		redimensión*/
 	// get the resources for this frame
@@ -1260,10 +1285,14 @@ void Application::render()
 	else if (acquireResult == VK_SUBOPTIMAL_KHR)
 	{
 		// can render this frame, recreate next time around
+		/*Cuando no hace el renderizado correcto pero es suficientemente
+		válido. En vez de mostrar el frame en negro lo dibuja con defecto
+		pero pide un nuevo Swapchain para no arrastrar los siguientes.*/
 		requireSwapchainRecreate = true;
 	}
 
 	// begin recording commands
+	//Es como darle al botón de REC. Le decimos que vamos a empezar a grabar comandos
 	VkCommandBufferBeginInfo cmdBeginInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO,
@@ -1274,7 +1303,40 @@ void Application::render()
 	/*4.	vkCmdPipelineBarrier2 -> Las imágenes en Vulkan necesitan cambiar de
 		estado para que los chips de la GPU sepan que hacer con ellas.
 		Imagen de Color: Cambia de estado "desconocido" a "optimizado para recibir color"
-		depthImage: Cambai a "Optimizado para pruebas de profundidad"*/
+		depthImage: Cambia a "Optimizado para pruebas de profundidad"
+		
+		El Layout es el formato (diseño) de las imágenes que tienen que cumplir para que 
+		la GPU pueda pintarlas a la máxima velocidad. NO es el formato típico de una imagen
+		como resolución, formato de color, etc.. sino ORGANIZACIÓN FÍSICA DE LOS PÍXELES
+		DENTRO DE LA MEMORIA RAM DE LA TARJETA GRÁFICA:
+			* Dibujar 3D -> la GPU prefiere estructura en bloques cuadrados (tiling) para rellenar
+				los píxeles en paralelo a la máxima velocidad: VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL
+			* Hacer pruebas 3D -> Estructura caché optimizada para solo guardar distancias Z
+				VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL
+			* Mostrar en el monitor -> Estructura lineal fila x columna ya que es la que entiende el HDMI / DisplayPort
+				VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+
+		Se le hace 3 preguntas a Vulkan para poder cambiar ese diseño de forma segura:
+
+		A. Quien tiene que terminar y quien esperar (stages)
+			.srcStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+				-> Quién usó la imagen por última vez = El motor de salida de color (el que muestra
+					la imagen en el monitor)
+			.dstStageMask = VK_PIPELINE_STAGE_2_COLOR_ATTACHMENT_OUTPUT_BIT,
+				-> Quién la va a usar ahora? = El mismo motor pero ahora para escribir.	
+		
+		B. Qué permisos de lectura/escritura cambiamos (access)
+			.srcAccessMask = 0, -> da igual que se estuviera leyendo antes (0)
+			.dstAccessMask = VK_ACCESS_2_COLOR_ATTACHMENT_WRITE_BIT, -> ahroa necesito permiso
+				de escritura (WRITE_BIT) ya que voy a dibujar.
+		
+		C. De qué diseño a qué diseño pasamos (layouts)	
+			.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED, -> no importa lo que hubiera pintado antes
+				Se puede destruir o ignorar. Ahorra por que no tiene que mantener el dibujo anterior
+			.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, -> Cambia la estructura de la memoria
+				para que se vuelve óptima, para que se escriban colores a toda velocidad.
+		
+		La segunda inicialización de la estructura hace lo mismo pero para el Depth zbuffer.*/
 	// transition the color and depth images
 	std::vector<VkImageMemoryBarrier2> layoutBarriers
 	{
@@ -1326,13 +1388,18 @@ void Application::render()
 	
 	/*5.	vkCmdBeginRendering activa el lienzo usando las configuracionde de color
 		y profundidad directamente.
-			vkCmdSetViewport y vkCmdSetScissor: Definen la región exacta de la pantalla 
+		
+		vkCmdSetViewport y vkCmdSetScissor: Definen la región exacta de la pantalla 
 		donde se va a pintar.
+		
 		vkCmdBindPipeline: Carga el shader de vértices y fragmentos	
+		
 		vkCmdDraw(..., 3, ...) dibuja los 3 vértices del triángulo
+		
 		vkCmdPipelineBarrier2 (el segundo): Devuelve la imagen de color al estado "Listo
 		para mostrar en pantalla */
-	// setup the attachments (color and depth) and begin rendering (dynamic)
+	
+		// setup the attachments (color and depth) and begin rendering (dynamic)
 	VkRenderingAttachmentInfo colorAttachInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_RENDERING_ATTACHMENT_INFO,
@@ -1351,6 +1418,9 @@ void Application::render()
 		.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE, // don't care after rendering
 		.clearValue{.depthStencil{1.0f, 0}}
 	};
+
+	//metemos el colorAttachInfo y el depthAttachInfo en el renderingInfo que será necesario
+	//para meterlo en el vkCmdBeginRendering
 	VkRenderingInfo renderingInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_RENDERING_INFO,
@@ -1369,6 +1439,14 @@ void Application::render()
 	vkCmdBeginRendering(res.commandBuffer, &renderingInfo);
 	{
 		// set the viewpot and scissor state
+		/*VIEWPORT:
+			en mis shaders el centro de la pantalla es 0,0. Arriba/dcha es (1,1)
+			y abajo/izda es (-1, -1)
+			El viewport le decimos que vayamos desde -1 a 1 y lo estiramos para encajar
+			desde el pixel 0 hasta el pixel swapchainWidth
+			
+			Si cambiamos el Viewport el triángulo se adapta (estira, deforma, etc) a esa
+			pantalla.*/
 		VkViewport viewport
 		{
 			.x = 0, .y = 0,
@@ -1377,6 +1455,10 @@ void Application::render()
 		};
 		vkCmdSetViewport(res.commandBuffer, 0, 1, &viewport);
 
+		/*Es un filtro que indica si pintar o no el pixel. Es una caja invisible. Si está dentro
+			pinta. Si no, no.
+			Si se cambia el Scissor no se deforma el triángulo. Solo se oculta esa parte (crop)
+			Lo ponemos igual que el viewport por que no queremos que queremos dibujar todo*/
 		VkRect2D scissor
 		{
 			.offset{.x = 0, .y = 0 },
@@ -1385,8 +1467,29 @@ void Application::render()
 		vkCmdSetScissor(res.commandBuffer, 0, 1, &scissor);
 
 		// draw our triangle
+		/* vkCmdBindPipeline -> todo lo que a partir de ahora mande dibujar (VK_PIPELINE_BIND_POINT_GRAPHICS),
+			tiene que procesarse usando las reglas de este "pipeline" específico.
+			En el proyecto SCOP hay un apartado que dice que al dar a una tecla se tiene que cambiar
+			de gris a textura. Habría que hacer dos pipelines y luego hacer esta llamada en cada caso*/
 		vkCmdBindPipeline(res.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+		
+		/*	3 -> es el numero de vertices a dibujar
+			1 -> es el número de instancias para no recalcular. Solo queremos una
+			0 -> firstVertex. El indice del primer vértice Es un offset para leer desde ese primero
+			0 -> firstInstance. lo mismo con instancias. Al no usarlas ponemos 0.*/
 		vkCmdDraw(res.commandBuffer, 3, 1, 0, 0);
+
+		/* En este tutorial están hardcodeados la posición de los vértices dentrod del shader
+		que fueron metidas a fuego dentro del "pipeline" cuando se creó con VkPipeline.
+		Para trabajar en Scop, hay que primero crear un buffer de memoria en la GPU VkBuffer
+		llamado Vertex Buffer y copiamos ahi los puntos leidos del .obj
+		Luego al iniciar el pipeline le decimos como leer ese buffer
+		y al final en este renderizado justo antes de dibujar, usamos la funciónÑ
+		vkCmdBindVertexBuffers para conectar el buffer al comando y el shader recibirá las posiciones
+		a traves de variables layout(location = 0) in vec3 inPosition;
+		El siguiente paso sería inyectar matrices de transformación (cámara y posición)
+		y una vez asi ya hacemos el vkCmdDraw*/
+
 	}
 	// end dynamic rendering
 	vkCmdEndRendering(res.commandBuffer);
