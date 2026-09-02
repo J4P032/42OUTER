@@ -1,3 +1,5 @@
+#![allow(warnings)]
+
 mod vulkan_api;
 
 use ash::Entry;
