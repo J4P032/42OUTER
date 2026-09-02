@@ -1,5 +1,6 @@
 use ash::vk::*; //for short calls of defines and enums
 use sdl2::video::Window;
+use ash::Entry; //parte del volk
 
 pub const VULKAN_VERSION: u32 = API_VERSION_1_3;
 pub const MAX_FRAMES_IN_FLIGHT: usize = 2;
@@ -102,6 +103,10 @@ impl VulkanApi{
 	}
 }
 
+/*	######################################################### 
+ 	#################### INITIALIZATION #####################
+	#########################################################	
+ */
 impl VulkanApi {
 	fn show_error(&self, error_message: &str ) {
 		sdl2::messagebox::show_simple_message_box(
@@ -131,13 +136,44 @@ impl VulkanApi {
 			self.show_error("Error creating window. No SDL2 init");
 			return false;
 		}
+
+		if !self.initialize_vulkan() {
+			return false;
+		}
+		true
+	}
+}
+
+impl VulkanApi {
+	fn initialize_vulkan(&mut self) -> bool {
+		if !self.create_vulkan_instance() {
+
+		}
+		
 		true
 	}
 
+	fn create_vulkan_instance(&mut self) -> bool {
+		/*volk is not necesary in Rust as it implements Entry, Instance and Device from 'ash'
+		 The info is filled with .default() because sType can be unsafe so it fills for you */
+		if let Ok(vulkan_functions_table) = unsafe { Entry::load() } {
+			let application_name = std::ffi::CStr::from_bytes_with_nul(b"Scop\0").unwrap(); //en Rust 1.75
+			let app_info = ApplicationInfo::default()
+				.application_name(application_name) //in Rust 1.77 it would be .application_name(c"Scop") to end with \0
+				.api_version(VULKAN_VERSION);
+		} else {
+			self.show_error("Error loading Entry");
+			return false;
+		}
+		
+		true
+	}
 }
 
 
-/* bool initialize();
-void shutdown();
-void run();
- */
+/* VkApplicationInfo appInfo
+	{
+		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
+		.pApplicationName = "My First Triangle",
+		.apiVersion = VulkanVersion,
+	}; */
