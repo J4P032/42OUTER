@@ -165,6 +165,7 @@ void Application::run()
 				}
 			#endif
 		}
+        //SDL_Delay(16); //limita a 60fps
 		render();
 	}
 }
@@ -397,6 +398,7 @@ VkPhysicalDevice Application::findPhysicalDevice()
 		{
 			VkPhysicalDeviceProperties props{};
 			vkGetPhysicalDeviceProperties(pDev, &props);
+            std::cout << "GPU encontrada: " << props.deviceName << std::endl;
 			//DISCRETE es una GPU separada con su propia memoria VRAM
 			if (props.deviceType == VK_PHYSICAL_DEVICE_TYPE_DISCRETE_GPU)
 			{
@@ -1173,7 +1175,7 @@ void Application::render()
 		destroySwapchain();
 		createSwapchain(width, height);
 		requireSwapchainRecreate = false;
-	}
+    }
 
 	/*2.CREAMOS DOS CAJONES para hacer el trabajo.
 		frameResIndex es el indice de esos dos cajones que será 0 ó 1.

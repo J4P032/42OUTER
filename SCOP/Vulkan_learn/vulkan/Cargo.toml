@@ -1,0 +1,13 @@
+[package]
+name = "scop_vulkan_rust"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sdl2 = { version = "0.37", features = ["raw-window-handle", "use-bindgen"] }
+
+# Crate para interactuar con la API de Vulkan en Rust
+ash = "0.38"
+
+# Añadimos la dependencia que falta para la gestión de memoria (VMA)
+vk-mem = "0.3.0"
