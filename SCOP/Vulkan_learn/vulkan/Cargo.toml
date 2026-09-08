@@ -1,0 +1,21 @@
+[package]
+name = "vulkan"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+# Para compilar con SDL2 -> cargo build --no-default-features --features sdl2
+
+[dependencies]
+ash = "0.38" 		#El binding de Vulkan más común en Rust.
+vk-mem = "0.4.0"	#Para VmaAllocator
+
+[features]
+default = ["sdl2"]
+sdl2 = ["dep:sdl2"]
+
+[dependencies.sdl2]
+version = "0.36"
+optional = true
+
+
