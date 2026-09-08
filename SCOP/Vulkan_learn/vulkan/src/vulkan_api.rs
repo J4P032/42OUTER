@@ -21,7 +21,7 @@ pub struct VulkanApi{
 	next_signal_value:			u32,
 	
 	//vulkan core
-	vulkan_instance:			Option<Instance>,
+	vulkan_instance:			Option<ash::Instance>,
 	physical_device:			Option<PhysicalDevice>,
 	device:						Option<Device>,
 	surface:					Option<SurfaceKHR>,
@@ -147,25 +147,72 @@ impl VulkanApi {
 impl VulkanApi {
 	fn initialize_vulkan(&mut self) -> bool {
 		if !self.create_vulkan_instance() {
-
+			self.show_error("Couldn't create a vulkan instance");
+			return false;
 		}
 		
 		true
 	}
 
 	fn create_vulkan_instance(&mut self) -> bool {
+		let app_info;
+		let inst_create_info;
+		let vulkan_functions_table;
+		let mut sdl_extensions_cstring = Vec::new();
+		let mut sdl_extensions_pointers = Vec::new();
+		
 		/*volk is not necesary in Rust as it implements Entry, Instance and Device from 'ash'
 		 The info is filled with .default() because sType can be unsafe so it fills for you */
-		if let Ok(vulkan_functions_table) = unsafe { Entry::load() } {
+		if let Ok(aux) = unsafe { Entry::load() } {
 			let application_name = std::ffi::CStr::from_bytes_with_nul(b"Scop\0").unwrap(); //en Rust 1.75
-			let app_info = ApplicationInfo::default()
+			app_info = ApplicationInfo::default()
 				.application_name(application_name) //in Rust 1.77 it would be .application_name(c"Scop") to end with \0
 				.api_version(VULKAN_VERSION);
+			vulkan_functions_table = aux;
 		} else {
-			self.show_error("Error loading Entry");
 			return false;
 		}
+
+		/*vulkan_instance_extensions -> Result<Vec<&'static str>, String>
+			enabled_extension_names(vector) needs Cstrings (ended with \0) BUT the
+			vulkan struct because it is in C, needs pointers, so:
+			1. we convert all the Vec<&'static str> that is a fat pointer into CStrings
+				that adds the \0.
+			2. Then we convert all of the elements into pointers.
+
+			Rest of data is filled from the .default() method.	*/
+		if let Some(window) = &self.window{
+			match window.vulkan_instance_extensions(){
+				Ok(sdl_extensions) => {
+					for i in sdl_extensions {
+						if let Ok(c_str) = std::ffi::CString::new(i) {
+							sdl_extensions_cstring.push(c_str);	
+						} else { 
+							return false;
+						}
+					}
+					for i in &sdl_extensions_cstring {
+						sdl_extensions_pointers.push(i.as_ptr())
+					}
+					
+					inst_create_info = InstanceCreateInfo::default()
+					.application_info(&app_info)
+					.enabled_extension_names(&sdl_extensions_pointers);
+				}
+				Err(_) => {
+					return false;
+				}
+			}
+		} else {
+			return false;
+		}
+
 		
+		if let Ok(aux) = unsafe { vulkan_functions_table.create_instance(&inst_create_info, None) } {
+			self.vulkan_instance = Some(aux);
+		} else {
+				return false;
+		}
 		true
 	}
 }
