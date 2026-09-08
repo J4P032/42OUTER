@@ -150,6 +150,11 @@ impl VulkanApi {
 			self.show_error("Couldn't create a vulkan instance");
 			return false;
 		}
+
+		if !self.create_surface() {
+			self.show_error("Couldn't create window surface");
+			return false;
+		}
 		
 		true
 	}
@@ -215,12 +220,24 @@ impl VulkanApi {
 		}
 		true
 	}
+
+	fn create_surface(&mut self) -> bool {
+
+		//surface:	Option<SurfaceKHR>,
+		//vulkan_create_surface(&self, instance: VkInstance) -> Result<VkSurfaceKHR, String>
+		if let Some(v_instance) = &self.vulkan_instance {
+			if let Some(win) = &self.window {
+				if let Ok(aux) = &self.window.vulkan_create_surface(v_instance.handle()) {
+					self.surface = aux;
+				} else {
+					return false;
+				}
+			} else {
+				return false;
+			}		
+		true
+	}
+	
 }
 
 
-/* VkApplicationInfo appInfo
-	{
-		.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,
-		.pApplicationName = "My First Triangle",
-		.apiVersion = VulkanVersion,
-	}; */
