@@ -221,23 +221,21 @@ impl VulkanApi {
 		true
 	}
 
-	fn create_surface(&mut self) -> bool {
-
-		//surface:	Option<SurfaceKHR>,
-		//vulkan_create_surface(&self, instance: VkInstance) -> Result<VkSurfaceKHR, String>
-		if let Some(v_instance) = &self.vulkan_instance {
-			if let Some(win) = &self.window {
-				if let Ok(aux) = &self.window.vulkan_create_surface(v_instance.handle()) {
-					self.surface = aux;
-				} else {
-					return false;
-				}
-			} else {
-				return false;
-			}		
+    /* vulkan_create_surface(&self, instance: VkInstance) -> Result<VkSurfaceKHR, String>
+        problem is that it communicates with sdl2 that is internally a handle of usize. So have to 
+        convert the window to usize with handle().as_raw(), and then go back to compose again from 
+        that handle to the SurfaceKHR object 
+        blocks let-else works as if let Some(...) but not make piramid of doom*/
+    fn create_surface(&mut self) -> bool {
+		let Some(v_instance) = &self.vulkan_instance else { return false; };
+        let Some(win) = &self.window else { return false; };
+        let Ok(aux) = win.vulkan_create_surface(v_instance.handle().as_raw() as usize) else { return false; };
+		
+        self.surface = Some(SurfaceKHR::from_raw(aux));
 		true
 	}
-	
+
+
 }
 
 
