@@ -170,6 +170,11 @@ impl VulkanApi {
 			return false;
 		}
 
+		if !self.create_device(self.physical_device){
+			self.show_error("Couldn't create the logical GPU device");
+			return false;
+		}
+	
 
 		true
 	}
@@ -313,44 +318,31 @@ impl VulkanApi {
 		false
 	}
 
+	fn create_device(&mut self, device: Option::<PhysicalDevice>) -> bool {
+		if device == None {
+			return false;
+		}
+		let dev = device.unwrap();
+		let mut queue_priority: f32 = 1.0;
+	
+		let gfx_queue_info = DeviceQueueCreateInfo::default()
+			.queue_family_index(self.gfx_queue_fam_idx)
+			.queue_priorities(&[queue_priority]); //queueCount picks from this.
+
+		let mut features13 = PhysicalDeviceVulkan13Features::default();
+		let mut features12 = PhysicalDeviceVulkan12Features::default();
+		let mut features = PhysicalDeviceFeatures2::default()
+			.push_next(&mut features13)
+			.push_next(&mut features12);
+
+
+		true
+	}
+
 }
 
 
-
-
-
-
-/* bool Application::findGraphicsQueue()
-{
-	// eventually we'll have more complex queue lookup for presentation, etc
-	// 1. Pillamos toda la familia de Queues que exiten en la Tarjeta elegida (physicalDevice). Cuantos Queues tienes?
-	uint32_t queueFamCount = 0;
-	vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &queueFamCount, nullptr);
-	// 2. Lo metenemos en un vector
-	std::vector<VkQueueFamilyProperties2> queueFamProps(queueFamCount, { VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2, nullptr });
-	vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &queueFamCount, queueFamProps.data());
-
-
-
-
-
-	/*Buscamos una queue que sepa dibujar y también sepa mostrarlo en pantalla, y guardamos ese
-	índice para usarlo después en el Logical Device*/
-	for (size_t currentFamIdx = 0; currentFamIdx < queueFamProps.size(); currentFamIdx++)
-	{
-		// ensure it has presentation support
-		//Tiene conexión física con la ventana de SDL (surface)		
-		VkBool32 hasPresentSupport = false;
-		vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, currentFamIdx, surface, &hasPresentSupport);
-
-		//Sabe dibujar?
-		const auto &props = queueFamProps[currentFamIdx];
-
-		if (props.queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT && hasPresentSupport)
-		{
-			gfxQueueFamIdx = currentFamIdx;
-			return true;
-		}
-	}
-	return false;
-} */
+/* 	VkPhysicalDeviceVulkan13Features supportedFeatures13{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES, .pNext = nullptr };
+	VkPhysicalDeviceVulkan12Features supportedFeatures12{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, .pNext = &supportedFeatures13 };
+	VkPhysicalDeviceFeatures2 supportedFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = &supportedFeatures12 };
+	vkGetPhysicalDeviceFeatures2(physicalDevice, &supportedFeatures); */
