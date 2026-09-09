@@ -6,6 +6,9 @@ use ash::Entry;
 use crate::vulkan_api::VulkanApi;
 
 fn main() {
+    //let mut kk = VulkanApi::new();
+    
+    
     // 1. Prueba de SDL2 (Reemplaza a SDL3 temporalmente)
     let _sdl_context = sdl2::init().expect("Error al inicializar SDL2");
     println!("✅ SDL2 detectado correctamente.");

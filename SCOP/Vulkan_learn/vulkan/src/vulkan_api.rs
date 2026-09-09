@@ -1,4 +1,5 @@
 use ash::vk::*; //for short calls of defines and enums
+use ash::khr::*;
 use sdl2::video::Window;
 use ash::Entry; //parte del volk
 
@@ -26,6 +27,7 @@ pub struct VulkanApi{
 	device:						Option<Device>,
 	surface:					Option<SurfaceKHR>,
 	vma_allocator:				Option<vk_mem::Allocator>,
+	vulkan_entry:				Option<ash::Entry>,
 
 	//queue related
 	gfx_queue_fam_idx:			u32,
@@ -81,6 +83,7 @@ impl VulkanApi{
 			device:						None,
 			surface:					None,
 			vma_allocator:				None,
+			vulkan_entry:				None,
 			gfx_queue_fam_idx:			u32::MAX,
 			gfx_queue:					None,
 			swapchain:					None,
@@ -162,6 +165,12 @@ impl VulkanApi {
 		};
 		self.physical_device = Some(device);
 
+		if !self.find_graphics_queue(){
+			self.show_error("Unable to find a compatible graphics queue");
+			return false;
+		}
+
+
 		true
 	}
 
@@ -221,6 +230,7 @@ impl VulkanApi {
 		
 		if let Ok(aux) = unsafe { vulkan_functions_table.create_instance(&inst_create_info, None) } {
 			self.vulkan_instance = Some(aux);
+			self.vulkan_entry = Some(vulkan_functions_table);
 		} else {
 				return false;
 		}
@@ -242,7 +252,7 @@ impl VulkanApi {
 	}
 
 	
-	/*pub unsafe fn enumerate_physical_devices(&self) -> VkResult<Vec<PhysicalDevice>> */
+	/*enumerate_physical_devices(&self) -> VkResult<Vec<PhysicalDevice>> */
 	fn find_physical_device(&mut self) -> Option<PhysicalDevice> {
 		let mut device: PhysicalDevice = PhysicalDevice::null();
 		
@@ -264,7 +274,83 @@ impl VulkanApi {
 		None
 	}
 
+	
+	/*pub unsafe fn get_physical_device_queue_family_properties2(
+    &self,
+    physical_device: PhysicalDevice,
+    out: &mut [QueueFamilyProperties2<'_>],) 
+		in C++ all Vulkan Functions all load globally. In Rust no. So when we need KHR ones
+		those are surface ones, so we need to create a loader from surface to access them.*/
+	fn find_graphics_queue(&mut self) -> bool {
+		let Some(instance) = &self.vulkan_instance else { return false; };
+		let Some(device) = &self.physical_device else { return false;};
+		let num_queue_families: usize;
+		
+		//need a portion of vector with number of queue_families that exist for function vector pusher.
+		unsafe {num_queue_families = instance.get_physical_device_queue_family_properties2_len(*device) }; 
+		let mut queue_props = vec![QueueFamilyProperties2::default(); num_queue_families];
+		unsafe { instance.get_physical_device_queue_family_properties2(*device, &mut queue_props) };
+
+		//no use of SurfaceKHR because is the data. We need the function, that is the Entry.
+		let Some(khr_functions) = &self.vulkan_entry else { return false; };
+		let Some(surface) = &self.surface else { return false; };
+		let surface_loader = surface::Instance::new(khr_functions, instance);
+
+		//get_physical_device_surface_support(&self, physical_device: PhysicalDevice, queue_family_index: u32, surface: SurfaceKHR,) -> VkResult<bool>
+		for family_idx in 0..num_queue_families{
+			let Ok(push_to_screen_flag) = (unsafe {surface_loader.get_physical_device_surface_support(*device, family_idx as u32, *surface)}) else { continue; }; 
+			
+			//dont do bitwise operations here in rust. Use contains(GRAPHICS)
+			let props = &queue_props[family_idx];
+			let draw_flag = props.queue_family_properties.queue_flags.contains(QueueFlags::GRAPHICS);
+
+			if push_to_screen_flag && draw_flag == true {
+				self.gfx_queue_fam_idx = family_idx as u32;
+				return true;
+			}
+		}
+
+		false
+	}
 
 }
 
 
+
+
+
+
+/* bool Application::findGraphicsQueue()
+{
+	// eventually we'll have more complex queue lookup for presentation, etc
+	// 1. Pillamos toda la familia de Queues que exiten en la Tarjeta elegida (physicalDevice). Cuantos Queues tienes?
+	uint32_t queueFamCount = 0;
+	vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &queueFamCount, nullptr);
+	// 2. Lo metenemos en un vector
+	std::vector<VkQueueFamilyProperties2> queueFamProps(queueFamCount, { VK_STRUCTURE_TYPE_QUEUE_FAMILY_PROPERTIES_2, nullptr });
+	vkGetPhysicalDeviceQueueFamilyProperties2(physicalDevice, &queueFamCount, queueFamProps.data());
+
+
+
+
+
+	/*Buscamos una queue que sepa dibujar y también sepa mostrarlo en pantalla, y guardamos ese
+	índice para usarlo después en el Logical Device*/
+	for (size_t currentFamIdx = 0; currentFamIdx < queueFamProps.size(); currentFamIdx++)
+	{
+		// ensure it has presentation support
+		//Tiene conexión física con la ventana de SDL (surface)		
+		VkBool32 hasPresentSupport = false;
+		vkGetPhysicalDeviceSurfaceSupportKHR(physicalDevice, currentFamIdx, surface, &hasPresentSupport);
+
+		//Sabe dibujar?
+		const auto &props = queueFamProps[currentFamIdx];
+
+		if (props.queueFamilyProperties.queueFlags & VK_QUEUE_GRAPHICS_BIT && hasPresentSupport)
+		{
+			gfxQueueFamIdx = currentFamIdx;
+			return true;
+		}
+	}
+	return false;
+} */
