@@ -156,6 +156,12 @@ impl VulkanApi {
 			return false;
 		}
 		
+		let Some(device) = self.find_physical_device() else {
+			self.show_error("Unable to find an appropriate physical device");
+			return false;
+		};
+		self.physical_device = Some(device);
+
 		true
 	}
 
@@ -233,6 +239,29 @@ impl VulkanApi {
 		
         self.surface = Some(SurfaceKHR::from_raw(aux));
 		true
+	}
+
+	
+	/*pub unsafe fn enumerate_physical_devices(&self) -> VkResult<Vec<PhysicalDevice>> */
+	fn find_physical_device(&mut self) -> Option<PhysicalDevice> {
+		let mut device: PhysicalDevice = PhysicalDevice::null();
+		
+		//vulkan_instance:			Option<ash::Instance>,
+		let Some(instance) = &self.vulkan_instance else { return None; };
+		//let mut physical_devices = Vec::<PhysicalDevice>::new();
+		let Ok(physical_devices) = (unsafe {instance.enumerate_physical_devices()}) else { return None;};
+		if physical_devices.len() > 0 {
+			device = physical_devices[0]; 
+			for idevice in physical_devices {
+				let props = unsafe { instance.get_physical_device_properties(idevice) }; //props = PhysicalDeviceProperties
+				if props.device_type == PhysicalDeviceType::DISCRETE_GPU {
+					device = idevice;
+					break;
+				}
+			}
+			return Some(device);
+		}
+		None
 	}
 
 
