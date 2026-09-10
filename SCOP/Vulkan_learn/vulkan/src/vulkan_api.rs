@@ -24,7 +24,7 @@ pub struct VulkanApi{
 	//vulkan core
 	vulkan_instance:			Option<ash::Instance>,
 	physical_device:			Option<PhysicalDevice>,
-	device:						Option<Device>,
+	device:						Option<ash::Device>,
 	surface:					Option<SurfaceKHR>,
 	vma_allocator:				Option<vk_mem::Allocator>,
 	vulkan_entry:				Option<ash::Entry>,
@@ -318,11 +318,11 @@ impl VulkanApi {
 		false
 	}
 
-	fn create_device(&mut self, device: Option::<PhysicalDevice>) -> bool {
-		if device == None {
+	fn create_device(&mut self, physical_device: Option::<PhysicalDevice>) -> bool {
+		if physical_device == None {
 			return false;
 		}
-		let dev = device.unwrap();
+		let dev = physical_device.unwrap();
 		let mut queue_priority: f32 = 1.0;
         let binding = [queue_priority]; //need to extend lifetime
 		let gfx_queue_info = DeviceQueueCreateInfo::default()
@@ -365,7 +365,8 @@ impl VulkanApi {
         let Ok(logical_device) = (unsafe { instance.create_device(dev, &dev_create_info, None)} ) else {
             return false;
         };
-      
+        self.device = Some(logical_device.clone());
+
         // grab the VkQueue object finally
         //gfx_queue:					Option<Queue>,
         let gfxqueue = unsafe { logical_device.get_device_queue(self.gfx_queue_fam_idx, 0)};
@@ -373,6 +374,7 @@ impl VulkanApi {
             self.show_error("Couldn't get the graphics queue");
             return false;
         }
+        
         self.gfx_queue = Some(gfxqueue);
 		true
 	}
