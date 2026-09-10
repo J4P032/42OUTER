@@ -324,25 +324,67 @@ impl VulkanApi {
 		}
 		let dev = device.unwrap();
 		let mut queue_priority: f32 = 1.0;
-	
+        let binding = [queue_priority]; //need to extend lifetime
 		let gfx_queue_info = DeviceQueueCreateInfo::default()
 			.queue_family_index(self.gfx_queue_fam_idx)
-			.queue_priorities(&[queue_priority]); //queueCount picks from this.
+			.queue_priorities(&binding); //queueCount picks from this.
 
-		let mut features13 = PhysicalDeviceVulkan13Features::default();
-		let mut features12 = PhysicalDeviceVulkan12Features::default();
-		let mut features = PhysicalDeviceFeatures2::default()
-			.push_next(&mut features13)
-			.push_next(&mut features12);
+		// query suppoted features.
+        //NOTA: INCLUIR 14 SI SE INSTALA
+        let mut supported_features13 = PhysicalDeviceVulkan13Features::default();
+		let mut supported_features12 = PhysicalDeviceVulkan12Features::default();
+		let mut supported_features = PhysicalDeviceFeatures2::default()
+			.push_next(&mut supported_features13)
+			.push_next(&mut supported_features12); //order: features-12-13.
+        let Some(instance) = &self.vulkan_instance else { return false;};
+        unsafe { instance.get_physical_device_features2(dev, &mut supported_features) };
 
+        // check if what we need is supported
+        if supported_features13.dynamic_rendering == 0 || supported_features13.synchronization2 == 0 ||
+            supported_features12.timeline_semaphore == 0{
+                self.show_error("Physical device doesn't meet the feature requirements");
+                return false;
+        }
 
+        // produce a separate features struct chain for device creation
+        let mut features13 = PhysicalDeviceVulkan13Features::default()
+            .synchronization2(true).dynamic_rendering(true);
+        let mut features12 = PhysicalDeviceVulkan12Features::default()
+            .timeline_semaphore(true);
+        let mut features = PhysicalDeviceFeatures2::default()
+            .push_next(&mut features13)
+            .push_next(&mut features12);
+
+        let gfxqueueinfo = [gfx_queue_info]; //lifetime
+        let extensions = [swapchain::NAME.as_ptr()];
+        let dev_create_info = DeviceCreateInfo::default()
+            .push_next(&mut features)
+            .queue_create_infos(&gfxqueueinfo)
+            .enabled_extension_names(&extensions);
+
+        let Ok(logical_device) = (unsafe { instance.create_device(dev, &dev_create_info, None)} ) else {
+            return false;
+        };
+      
+        // grab the VkQueue object finally
+        //gfx_queue:					Option<Queue>,
+        let gfxqueue = unsafe { logical_device.get_device_queue(self.gfx_queue_fam_idx, 0)};
+        if gfxqueue == Queue::null(){
+            self.show_error("Couldn't get the graphics queue");
+            return false;
+        }
+        self.gfx_queue = Some(gfxqueue);
 		true
 	}
 
 }
 
 
-/* 	VkPhysicalDeviceVulkan13Features supportedFeatures13{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES, .pNext = nullptr };
-	VkPhysicalDeviceVulkan12Features supportedFeatures12{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_2_FEATURES, .pNext = &supportedFeatures13 };
-	VkPhysicalDeviceFeatures2 supportedFeatures{ .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2, .pNext = &supportedFeatures12 };
-	vkGetPhysicalDeviceFeatures2(physicalDevice, &supportedFeatures); */
+/* // grab the VkQueue object finally
+	vkGetDeviceQueue(device, gfxQueueFamIdx, 0, &gfxQueue);
+	if (!gfxQueue)
+	{
+		showError("Couldn't get the graphics queue");
+		return false;
+	}
+	return true; */
