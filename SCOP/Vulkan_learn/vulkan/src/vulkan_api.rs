@@ -175,6 +175,10 @@ impl VulkanApi {
 			return false;
 		}
 	
+		if !self.initialize_vma(){
+			self.show_error("Unable to create Vulkan Memory Allocator");
+			return false;
+		}
 
 		true
 	}
@@ -376,6 +380,19 @@ impl VulkanApi {
         }
         
         self.gfx_queue = Some(gfxqueue);
+		true
+	}
+
+	/*Not use ash crate, but instead, vk_mem one */
+	fn initialize_vma(&mut self) -> bool{
+		let Some(instance) = &self.vulkan_instance else { return false;};
+		let Some(pdevice) = &self.physical_device else { return false;};
+		let Some(device) = &self.device else { return false;};
+		let mut vma_alloc_info = vk_mem::AllocatorCreateInfo::new(instance, device, *pdevice);
+		vma_alloc_info.flags = vk_mem::AllocatorCreateFlags::BUFFER_DEVICE_ADDRESS;
+
+		let Ok(allocator) = (unsafe{vk_mem::Allocator::new(vma_alloc_info)}) else { return false;}; 
+		self.vma_allocator = Some(allocator);
 		true
 	}
 

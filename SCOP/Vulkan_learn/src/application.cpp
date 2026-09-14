@@ -616,7 +616,7 @@ bool Application::initializeVMA()
 
 	VmaAllocatorCreateInfo vmaAllocInfo
 	{
-		.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT,
+		.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT, //permite el uso de punteros en vulkan
 		.physicalDevice = physicalDevice,
 		.device = device,
 		.pVulkanFunctions = &vmaFuncInfo,
