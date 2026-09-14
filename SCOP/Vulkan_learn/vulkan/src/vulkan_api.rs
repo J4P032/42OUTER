@@ -404,7 +404,7 @@ impl VulkanApi {
 
 	/*in C++ to find functions from KHR_Surface, que used Volk, but here we need
 		to separate it. So we need a surface_loader variable that loads all those functions
-		because they are not in basic ash instance */
+		because they are not in basic ash instance. Same for swapchain creation*/
 	fn create_swap_chain(&mut self, width: u32, height: u32) -> bool{
 		self.swapchain_width = width;
 		self.swapchain_height = height;
@@ -412,23 +412,63 @@ impl VulkanApi {
 		let Some(entry) = &self.vulkan_entry else { return false;};
 		let Some(instance) = &self.vulkan_instance else { return false;};
 		let Some(pdevice) = &self.physical_device else { return false;};
+		let Some(device) = &self.device else { return false;};
 		let Some(surface) = &self.surface else { return false;};
 		
+		//1.see if surface es good enough
 		let surface_loader = ash::khr::surface::Instance::new(entry, instance);
-		let surface_caps = unsafe {surface_loader.get_physical_device_surface_capabilities(*pdevice, *surface)};
+		let Ok(surface_caps) = (unsafe {surface_loader.get_physical_device_surface_capabilities(*pdevice, *surface)}) else {
+			self.show_error("Couldn't get the surface capabilities");
+			return false;
+		};
 		
+		//2. create swapchain
+		let swapchain_create_info = ash::vk::SwapchainCreateInfoKHR::default()
+			.surface(*surface)
+			.min_image_count(surface_caps.min_image_count.max(3))
+			.image_format(ash::vk::Format::B8G8R8_SRGB)
+			.image_color_space(ash::vk::ColorSpaceKHR::SRGB_NONLINEAR)
+			.image_extent(ash::vk::Extent2D {width: self.swapchain_width, height: self.swapchain_height })
+			.image_array_layers(1)
+			.image_usage(ash::vk::ImageUsageFlags::COLOR_ATTACHMENT)
+			.pre_transform(ash::vk::SurfaceTransformFlagsKHR::IDENTITY)
+			.composite_alpha(ash::vk::CompositeAlphaFlagsKHR::OPAQUE)
+			.present_mode(ash::vk::PresentModeKHR::FIFO);
+		
+		
+		let swapchain_loader = ash::khr::swapchain::Device::new(instance, device);
+		let Ok(swapchain) = (unsafe {swapchain_loader.create_swapchain(&swapchain_create_info, None)}) else {
+			self.show_error("Error creating swapchain");
+			return false;
+		};
+		self.swapchain = Some(swapchain);
 	
+		//3.Prepare Images
+		let Ok(swapchain_images) = (unsafe {swapchain_loader.get_swapchain_images(swapchain)}) else {
+			return false;
+		};
+		self.swapchain_images = swapchain_images.clone();
 
-	/* 	VkSurfaceCapabilitiesKHR surfaceCaps{};
-	if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCaps) != VK_SUCCESS)
-	{
-		showError("Couldn't get the surface capabilities");
-		return false;
-	} */
-
-
-
-
+		for image in swapchain_images {
+			let img_view_info = ash::vk::ImageViewCreateInfo::default()
+				.image(image)
+				.view_type(ash::vk::ImageViewType::TYPE_2D)
+				.format(ash::vk::Format::B8G8R8_SRGB)
+				.subresource_range(ash::vk::ImageSubresourceRange {
+					aspect_mask : ash::vk::ImageAspectFlags::COLOR,
+					level_count : 1,
+					layer_count : 1,
+					..Default::default() //set base_mip_level and base_array_layer to 0
+				});
+			
+			//swapchain_image_views:		Vec<ImageView>,
+			let Ok(image_view) = (unsafe {device.create_image_view(&img_view_info, None)}) else {
+				self.show_error("Error creating swapchain image view");
+				return false;
+			};
+			self.swapchain_image_views.push(image_view);
+		
+		}
 
 		true
 	}
