@@ -180,6 +180,12 @@ impl VulkanApi {
 			return false;
 		}
 
+		if !self.create_swap_chain(self.width, self.height){
+			self.show_error("Unable to create swapchain");
+			return false;
+		}
+
+
 		true
 	}
 
@@ -396,14 +402,40 @@ impl VulkanApi {
 		true
 	}
 
+	/*in C++ to find functions from KHR_Surface, que used Volk, but here we need
+		to separate it. So we need a surface_loader variable that loads all those functions
+		because they are not in basic ash instance */
+	fn create_swap_chain(&mut self, width: u32, height: u32) -> bool{
+		self.swapchain_width = width;
+		self.swapchain_height = height;
+		
+		let Some(entry) = &self.vulkan_entry else { return false;};
+		let Some(instance) = &self.vulkan_instance else { return false;};
+		let Some(pdevice) = &self.physical_device else { return false;};
+		let Some(surface) = &self.surface else { return false;};
+		
+		let surface_loader = ash::khr::surface::Instance::new(entry, instance);
+		let surface_caps = unsafe {surface_loader.get_physical_device_surface_capabilities(*pdevice, *surface)};
+		
+	
+
+	/* 	VkSurfaceCapabilitiesKHR surfaceCaps{};
+	if (vkGetPhysicalDeviceSurfaceCapabilitiesKHR(physicalDevice, surface, &surfaceCaps) != VK_SUCCESS)
+	{
+		showError("Couldn't get the surface capabilities");
+		return false;
+	} */
+
+
+
+
+
+		true
+	}
+
+
+
+
 }
 
 
-/* // grab the VkQueue object finally
-	vkGetDeviceQueue(device, gfxQueueFamIdx, 0, &gfxQueue);
-	if (!gfxQueue)
-	{
-		showError("Couldn't get the graphics queue");
-		return false;
-	}
-	return true; */
