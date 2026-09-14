@@ -1,3 +1,30 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   vulkan_api.rs                                      :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
+/*   Updated: 2026/09/14 20:42:35 by jrollon-         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
+/*To communicate with Vulkan SDK in C, we use ash crate. All information:
+	https://docs.rs/ash/latest/ash/
+	All depending on Instances, Entry (way of volk in Rust) and Device
+	can be found at:
+		https://docs.rs/ash/latest/ash/struct.Instance.html
+		https://docs.rs/ash/latest/ash/struct.Entry.html
+		https://docs.rs/ash/latest/ash/struct.Device.html
+
+	As a norm. All funcions of KHR are separated from ash here (ash::khr):
+		https://docs.rs/ash/latest/ash/khr/index.html
+	BUT all structures or objects of KHR are separated here (ash:vk):
+		https://docs.rs/ash/latest/ash/vk/index.html
+*/
+
+
 use ash::vk::*; //for short calls of defines and enums
 use ash::khr::*;
 use sdl2::video::Window;
