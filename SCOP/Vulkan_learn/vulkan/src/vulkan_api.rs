@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/15 13:22:46 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/15 14:58:05 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -499,7 +499,7 @@ impl VulkanApi {
 		//4.Semaphores.
 		let num_images = self.swapchain_images.len();
 		self.render_complete_semaphores.reserve(num_images);
-		let mut semaphore_info = ash::vk::SemaphoreCreateInfo::default();
+		let mut semaphore_info = ash::vk::SemaphoreCreateInfo::default(); //MIRAR SI METERLO DENTRO DEL FOR
 		for _ in 0..num_images{
 			let Ok(semaphore) = (unsafe{device.create_semaphore(&semaphore_info, None)}) else {
 				self.show_error("Error creating the render-complete semaphore");
@@ -508,6 +508,21 @@ impl VulkanApi {
 			self.render_complete_semaphores.push(semaphore);	
 		}
 
+		//5.Create depth image
+		let depth_create_info = ash::vk::ImageCreateInfo::default()
+			.image_type(ash::vk::ImageType::TYPE_2D)
+			.format(ash::vk::Format::D32_SFLOAT)
+			.extent(ash::vk::Extent3D {
+				width: self.swapchain_width,
+				height: self.swapchain_height,
+				depth: 1
+			})
+			.mip_levels(1)
+			.array_layers(1)
+			.samples(ash::vk::SampleCountFlags::TYPE_1)
+			.tiling(ash::vk::ImageTiling::OPTIMAL)
+			.usage(ash::vk::ImageUsageFlags::DEPTH_STENCIL_ATTACHMENT)
+			.initial_layout(ash::vk::ImageLayout::UNDEFINED);
 
 
 		true
