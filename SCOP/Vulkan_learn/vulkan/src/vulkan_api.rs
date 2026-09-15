@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/15 14:58:05 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/15 17:41:29 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,9 @@
 		https://docs.rs/ash/latest/ash/khr/index.html
 	BUT all structures or objects of KHR are separated here (ash:vk):
 		https://docs.rs/ash/latest/ash/vk/index.html
+
+	vma is present in Crate vk_mem:
+		https://docs.rs/vk-mem/latest/vk_mem/
 */
 
 
@@ -524,7 +527,37 @@ impl VulkanApi {
 			.usage(ash::vk::ImageUsageFlags::DEPTH_STENCIL_ATTACHMENT)
 			.initial_layout(ash::vk::ImageLayout::UNDEFINED);
 
+		let mut alloc_info = vk_mem::AllocationCreateInfo::default();
+		alloc_info.flags = vk_mem::AllocationCreateFlags::DEDICATED_MEMORY;
+		alloc_info.usage = vk_mem::MemoryUsage::Auto;
 
+		
+		let Some(allocator) = &self.vma_allocator else { return false; };
+		let Ok((depth_image, depth_allocation)) = (unsafe {
+			vk_mem::Alloc::create_image(allocator, &depth_create_info, &alloc_info)}) else {
+			self.show_error("Error allocating depth image");
+			return false;
+		};
+
+		let depth_img_view_info = ash::vk::ImageViewCreateInfo::default()
+			.image(depth_image)
+			.view_type(ash::vk::ImageViewType::TYPE_2D)
+			.format(ash::vk::Format::D32_SFLOAT)
+			.subresource_range(ash::vk::ImageSubresourceRange {
+				aspect_mask: ash::vk::ImageAspectFlags::DEPTH,
+				level_count: 1,
+				layer_count: 1,
+				..Default::default()
+			});
+		
+		let Ok(image_depth_view) = (unsafe {device.create_image_view(&depth_img_view_info, None)}) else {
+			self.show_error("Error creating depth image view");
+			return false;
+		};
+
+		self.depth_image = Some(depth_image);
+		self.depth_image_view = Some(image_depth_view);
+		self.depth_image_allocation = Some(depth_allocation);
 		true
 	}
 
