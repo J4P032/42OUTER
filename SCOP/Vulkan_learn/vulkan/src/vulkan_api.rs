@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/14 20:42:35 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/15 13:22:46 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -478,15 +478,15 @@ impl VulkanApi {
 
 		for image in swapchain_images {
 			let img_view_info = ash::vk::ImageViewCreateInfo::default()
-				.image(image)
-				.view_type(ash::vk::ImageViewType::TYPE_2D)
-				.format(ash::vk::Format::B8G8R8_SRGB)
-				.subresource_range(ash::vk::ImageSubresourceRange {
-					aspect_mask : ash::vk::ImageAspectFlags::COLOR,
-					level_count : 1,
-					layer_count : 1,
-					..Default::default() //set base_mip_level and base_array_layer to 0
-				});
+			.image(image)
+			.view_type(ash::vk::ImageViewType::TYPE_2D)
+			.format(ash::vk::Format::B8G8R8_SRGB)
+			.subresource_range(ash::vk::ImageSubresourceRange {
+				aspect_mask : ash::vk::ImageAspectFlags::COLOR,
+				level_count : 1,
+				layer_count : 1,
+				..Default::default() //set base_mip_level and base_array_layer to 0
+			});
 			
 			//swapchain_image_views:		Vec<ImageView>,
 			let Ok(image_view) = (unsafe {device.create_image_view(&img_view_info, None)}) else {
@@ -494,8 +494,21 @@ impl VulkanApi {
 				return false;
 			};
 			self.swapchain_image_views.push(image_view);
-		
 		}
+		
+		//4.Semaphores.
+		let num_images = self.swapchain_images.len();
+		self.render_complete_semaphores.reserve(num_images);
+		let mut semaphore_info = ash::vk::SemaphoreCreateInfo::default();
+		for _ in 0..num_images{
+			let Ok(semaphore) = (unsafe{device.create_semaphore(&semaphore_info, None)}) else {
+				self.show_error("Error creating the render-complete semaphore");
+				return false;
+			}; 
+			self.render_complete_semaphores.push(semaphore);	
+		}
+
+
 
 		true
 	}

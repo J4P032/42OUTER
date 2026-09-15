@@ -697,7 +697,9 @@ bool Application::createSwapchain(uint32_t width, uint32_t height)
 	vkGetSwapchainImagesKHR(device, swapchain, &imageCount, swapchainImages.data());
 	swapchainImageViews.resize(imageCount);
 
-	// create the swapchain image views
+	// create the swapchain image views.
+	/* definimos que sea tipo 2D (aunque renderize 3D). Esto junto al images
+		se utilizara para componer el vkFramebuffer que es donde realmente pintaremos */
 	for (size_t i = 0; i < swapchainImages.size(); ++i)
 	{
 		VkImageViewCreateInfo imgViewInfo
@@ -714,7 +716,7 @@ bool Application::createSwapchain(uint32_t width, uint32_t height)
 			}
 		};
 
-		//aquí creo cada imagen
+		//aquí creo cada imagen y la meto en el vector 
 		if (vkCreateImageView(device, &imgViewInfo, nullptr, &swapchainImageViews[i]) != VK_SUCCESS)
 		{
 			showError("Error creating swapchain image view");
@@ -736,6 +738,7 @@ bool Application::createSwapchain(uint32_t width, uint32_t height)
 			return false;
 		}
 	}
+	
 
 	// create depth image
 	/*Como se puede ver tiene otro vkCreateImageView. Esto es por que el 
