@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/15 17:41:29 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/16 13:20:16 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -212,6 +212,11 @@ impl VulkanApi {
 
 		if !self.create_swap_chain(self.width, self.height){
 			self.show_error("Unable to create swapchain");
+			return false;
+		}
+
+		if !self.create_shaders(){
+			self.show_error("Error creating shader modules");
 			return false;
 		}
 
@@ -561,6 +566,19 @@ impl VulkanApi {
 		true
 	}
 
+	/* Because I don't have SUDO in 42, we cannot compile in run time shaderc crate
+		so I am made both shaders binary files with:
+
+		/goinfre/jrollon-/scop_vulkan/1.3.296.0/x86_64/bin/glslc shader.vert -o vert.spv
+
+		/goinfre/jrollon-/scop_vulkan/1.3.296.0/x86_64/bin/glslc shader.frag -o frag.spv
+
+	
+		*/
+	fn create_shaders(&mut self) -> bool {
+
+		true
+	}
 
 
 

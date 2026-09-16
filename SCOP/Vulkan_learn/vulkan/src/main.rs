@@ -6,7 +6,7 @@ use ash::Entry;
 use crate::vulkan_api::VulkanApi;
 
 fn main() {
-    //let mut kk = VulkanApi::new();
+
     
     
     // 1. Prueba de SDL2 (Reemplaza a SDL3 temporalmente)
@@ -25,4 +25,11 @@ fn main() {
             );
         }
     }
+
+    let mut vulkan_api = VulkanApi::new();
+    if vulkan_api.initialize() {
+
+    }
+
+
 }
