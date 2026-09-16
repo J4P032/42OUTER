@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/16 15:43:29 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/16 17:59:52 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -219,6 +219,12 @@ impl VulkanApi {
 			self.show_error("Error creating shader modules");
 			return false;
 		}
+
+		let Some(pipeline) = self.create_graphics_pipeline() else {
+			self.show_error("Unable to initialize the graphics pipeline");
+			return false;
+		};
+		self.pipeline = Some(pipeline);
 
 
 		true
@@ -612,6 +618,51 @@ impl VulkanApi {
 		self.frag_shader = Some(f_shader);
 
 		true
+	}
+
+	fn create_graphics_pipeline(&mut self) -> Option<ash::vk::Pipeline> {
+		//1. need to define a pipeline layout.
+		let Some(device) = &self.device else { return None;};
+		let pipeline_layout_info = ash::vk::PipelineLayoutCreateInfo{
+			set_layout_count: 0,
+			push_constant_range_count: 0,
+			..Default::default()	
+		};
+		let Ok(pipeline_layout) = (unsafe {device.create_pipeline_layout(&pipeline_layout_info, None)}) else { 
+			self.show_error("Unable to create the pipeline layout");
+			return None;};
+		self.pipeline_layout = Some(pipeline_layout);
+		
+
+		//2.  configure the shader stages struct.
+		/* entry_point has to be ended by /0 but when we create a &str that don't end in \0
+			so we can do aslo as put here in code:
+			let entry_point: &str = "main\0"
+			p_name: entry_point.as_ptr() as *const i8
+			why i8? because it ask in vulkan i8, but &str is u8*/
+		let Some(vert_shader) = &self.vert_shader else { return None;};
+		let Some(frag_shader) = &self.frag_shader else { return None;};
+		let entry_point = b"main\0"; //b".." is static memory. No heap like CString::new("main")
+		
+		let mut shader_stages: Vec::<ash::vk::PipelineShaderStageCreateInfo> = vec![
+			ash::vk::PipelineShaderStageCreateInfo{
+				stage:	ash::vk::ShaderStageFlags::VERTEX,
+				module: *vert_shader,
+				p_name: entry_point.as_ptr() as *const std::os::raw::c_char,
+				..Default::default()
+			},
+			ash::vk::PipelineShaderStageCreateInfo{
+				stage:	ash::vk::ShaderStageFlags::FRAGMENT,
+				module: *frag_shader,
+				p_name: entry_point.as_ptr() as *const std::os::raw::c_char,
+				..Default::default()
+			},
+		];
+
+
+		
+		let pipe = ash::vk::Pipeline::default();
+		Some(pipe)
 	}
 
 
