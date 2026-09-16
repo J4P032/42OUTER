@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/16 13:20:16 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/16 15:43:29 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -572,10 +572,44 @@ impl VulkanApi {
 		/goinfre/jrollon-/scop_vulkan/1.3.296.0/x86_64/bin/glslc shader.vert -o vert.spv
 
 		/goinfre/jrollon-/scop_vulkan/1.3.296.0/x86_64/bin/glslc shader.frag -o frag.spv
-
 	
-		*/
+		we need to use read_spv because create_shader_module don't expect normal bytes
+		&[u32] but 32bits 'words' because SPIR-V format is lined to 4 bytes. That function
+		gives me the vec<u32> for me.
+	*/
 	fn create_shaders(&mut self) -> bool {
+		//let shader_vert = "/shaders/vert.spv".to_string();
+		//let shader_frag = "/shaders/frag.spv".to_string();
+		let Ok(mut shader_vert) = std::fs::File::open("src/shaders/vert.spv") else {
+			println!{"Cannot open vert shader file"};
+			return false;
+		};
+		let Ok(shader_vert_vec) = ash::util::read_spv(&mut shader_vert) else {
+			return false;
+		};
+		
+		let Ok(mut shader_frag) = std::fs::File::open("src/shaders/frag.spv") else {
+			println!{"Cannot open frag shader file"};
+			return false;
+		};
+		let Ok(shader_frag_vec) = ash::util::read_spv(&mut shader_frag) else {
+			return false;
+		};
+		
+		let Some(device) = &self.device else { return false;};
+		let mut vert_module_create_info = ash::vk::ShaderModuleCreateInfo::default();
+		vert_module_create_info.code_size = shader_vert_vec.len() * std::mem::size_of::<u32>(); //size in bytes
+		vert_module_create_info.p_code = &shader_vert_vec[0];
+		
+		let mut frag_module_create_info = ash::vk::ShaderModuleCreateInfo::default();
+		frag_module_create_info.code_size = shader_frag_vec.len() * std::mem::size_of::<u32>();
+		frag_module_create_info.p_code = &shader_frag_vec[0];
+		
+		let Ok(v_shader) = (unsafe {device.create_shader_module(&vert_module_create_info, None)}) else {return false;};
+		let Ok(f_shader) = (unsafe {device.create_shader_module(&frag_module_create_info, None)}) else {return false;};
+		
+		self.vert_shader = Some(v_shader);
+		self.frag_shader = Some(f_shader);
 
 		true
 	}
