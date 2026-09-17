@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/16 17:59:52 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/17 13:13:12 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -658,8 +658,40 @@ impl VulkanApi {
 				..Default::default()
 			},
 		];
+		
+		//3. vertex pulling, don't define vertex input details
+		/* for Tutorial we comment the channel lines, but are necesary:
+			GPU needs to know how many bytes ignore or advance to find next vertex in memory
+			Channel -> we can send different data arrays from CPU. The number says which "plug"
+						we are connected to. in Scop 0 is enough. Then link in Vertex Buffer to
+						same channel.
+			stride ->	size of vertex3
+			input_rate -> freq GPU advance to next element. Scop: we are going to draw vertices
+						ones by one so it should advance by each vertex VertexInputRate::VERTEX	 
 
-
+			BE CAREFULL WITH LIFETIME AS binding_descriptions will last only here and 			
+			*/
+		let mut vert_input_info = ash::vk::PipelineVertexInputStateCreateInfo::default();
+		/* 
+		PARA SCOP!!!!!
+		
+		vert_input_info.vertex_binding_description_count = 1;
+		let binding_descriptions = ash::vk::VertexInputBindingDescription::default()
+			.binding(0)
+			.stride(std::mem::size_of::<u32>() as u32)
+			.input_rate(ash::vk::VertexInputRate::VERTEX);
+		let attribute_descriptions = ash::vk::VertexInputAttributeDescription::default()
+			.location(0) //shader.vert line: layout(location = 0) in vec3 inPosition; 
+			.binding(0) //same as binding_descritions.binding
+			.format(ash::vk::Format::R32G32B32_SFLOAT)
+			.offset(0);
+		vert_input_info.p_vertex_binding_descriptions = &binding_descriptions;
+		vert_input_info.vertex_attribute_description_count = 1;
+		vert_input_info.p_vertex_attribute_descriptions = &attribute_descriptions; */
+		
+		
+		
+		
 		
 		let pipe = ash::vk::Pipeline::default();
 		Some(pipe)

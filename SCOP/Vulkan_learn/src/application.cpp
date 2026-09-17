@@ -952,6 +952,7 @@ VkPipeline Application::createGraphicsPipeline()
     		.pVertexBindingDescriptions = &miBindingDescription,   // El cable
     		.vertexAttributeDescriptionCount = 1,
     		.pVertexAttributeDescriptions = &miAttributeDescription // El formato
+			crear los miBindingDescription y miAttributeDescription como en rust.
 		*/
 	};
 
