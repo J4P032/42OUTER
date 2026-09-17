@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/17 13:13:12 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/17 16:01:04 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -687,12 +687,63 @@ impl VulkanApi {
 			.offset(0);
 		vert_input_info.p_vertex_binding_descriptions = &binding_descriptions;
 		vert_input_info.vertex_attribute_description_count = 1;
-		vert_input_info.p_vertex_attribute_descriptions = &attribute_descriptions; */
+		vert_input_info.p_vertex_attribute_descriptions = &attribute_descriptions; 
+		*/
 		
+		//4. input assembly, we'll be drawing triangle lists
+		let input_assembly_info = ash::vk::PipelineInputAssemblyStateCreateInfo::default()
+			.topology(ash::vk::PrimitiveTopology::TRIANGLE_LIST);
 		
+		//5. depth/stencil configuration
+		let depth_stencil_info = ash::vk::PipelineDepthStencilStateCreateInfo::default()
+			.depth_test_enable(true)
+			.depth_write_enable(true)
+			.depth_compare_op(ash::vk::CompareOp::LESS)
+			.stencil_test_enable(false);
 		
-		
-		
+		//6. dynamic rendering allows to set this up...dynamically
+		let viewport_info = ash::vk::PipelineViewportStateCreateInfo::default()
+		.viewport_count(1)
+		.scissor_count(1);
+	
+	// 6b. enable dynamic state
+		//let dynamic_state = Vec::<ash::vk::DynamicState>::new();
+		let dynamic_state = vec![ash::vk::DynamicState::VIEWPORT, ash::vk::DynamicState::SCISSOR];
+		let dynamic_state_info = ash::vk::PipelineDynamicStateCreateInfo{
+			dynamic_state_count: dynamic_state.len() as u32,
+			p_dynamic_states: dynamic_state.as_ptr(),
+			..Default::default()
+		};
+
+		//7. rasterizer settings
+		let raster_info = ash::vk::PipelineRasterizationStateCreateInfo::default()
+			.polygon_mode(ash::vk::PolygonMode::FILL) //fill triangle
+			.cull_mode(ash::vk::CullModeFlags::BACK) //no draw backface
+			.front_face(ash::vk::FrontFace::COUNTER_CLOCKWISE)
+			.line_width(1.0);
+		// No multisampling
+		let multisample_info = ash::vk::PipelineMultisampleStateCreateInfo::default()
+			.rasterization_samples(ash::vk::SampleCountFlags::TYPE_1);
+
+		// 8.Alpha-blending (disabled for now), still need attachment info and write mask
+		let attach_state = ash::vk::PipelineColorBlendAttachmentState::default()
+			.blend_enable(false)
+			.color_write_mask(ash::vk::ColorComponentFlags::RGBA);
+		let blend_info = ash::vk::PipelineColorBlendStateCreateInfo{
+			attachment_count: 1,
+			p_attachments: &attach_state,
+			..Default::default()
+		};
+
+		//9. structure required for dynamic rendering
+		let render_info = ash::vk::PipelineRenderingCreateInfo{
+			color_attachment_count: 1,
+			p_color_attachment_formats: &SWAP_CHAIN_IN_FORMAT,
+			depth_attachment_format: DEPTH_FORMAT,
+			..Default::default()	
+		};
+
+
 		let pipe = ash::vk::Pipeline::default();
 		Some(pipe)
 	}
