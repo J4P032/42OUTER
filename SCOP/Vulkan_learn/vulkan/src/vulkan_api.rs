@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/17 16:01:04 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/18 12:52:04 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -736,20 +736,53 @@ impl VulkanApi {
 		};
 
 		//9. structure required for dynamic rendering
-		let render_info = ash::vk::PipelineRenderingCreateInfo{
+		let mut render_info = ash::vk::PipelineRenderingCreateInfo{
 			color_attachment_count: 1,
 			p_color_attachment_formats: &SWAP_CHAIN_IN_FORMAT,
 			depth_attachment_format: DEPTH_FORMAT,
 			..Default::default()	
 		};
 
+		//10. Create the graphics pipeline
+		/*Here we can see several & pointers. It is NOT a problem about removing the LOCAL
+			vectors and structs to build this info, BECAUSE vulkan function device.create_graphics_pipelines
+			will make a full NEW object inside the GPU with VRam so later all can be destroyed in
+			CPU (this local funcion) */
+		let mut pipeline_info = ash::vk::GraphicsPipelineCreateInfo{
+			stage_count: shader_stages.len() as u32, 
+			p_stages: shader_stages.as_ptr(),
+			p_vertex_input_state: &vert_input_info,
+			p_input_assembly_state: &input_assembly_info,
+			p_viewport_state: &viewport_info,
+			p_rasterization_state: &raster_info,
+			p_multisample_state: &multisample_info,
+			p_depth_stencil_state: &depth_stencil_info,
+			p_color_blend_state: &blend_info,
+			p_dynamic_state: &dynamic_state_info,
+			layout: pipeline_layout,
+			render_pass: ash::vk::RenderPass::null(),
+			
+			..Default::default()	
+		};
 
-		let pipe = ash::vk::Pipeline::default();
+		pipeline_info.push_next(&mut render_info);
+
+		let Ok(pipes) = (unsafe {device.create_graphics_pipelines(ash::vk::PipelineCache::null(), &[pipeline_info], None)}) else {
+			self.show_error("Error creating the pipeline");
+			return None;
+		};
+
+		/*garantee vectors not destroyed until here to be assigned propertly.
+			When we make internally the .as_ptr() in any vector, Rust compiler looks for 
+			more use of those vectors lines below. If not find it it can trash the vectors
+			so we would have bad pointer data even compiler let you compile. That way, putting
+			drop, they are preserved until the end.. even they were going to be destroyed.*/
+		drop(shader_stages);
+		drop(dynamic_state);
+
+		let Some(pipe) = pipes.into_iter().next() else { return None;};
 		Some(pipe)
 	}
-
-
-
 }
 
 

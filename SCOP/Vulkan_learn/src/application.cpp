@@ -1050,6 +1050,12 @@ VkPipeline Application::createGraphicsPipeline()
 	};
 
 	//10. Create the graphics pipeline
+	/* Hay una duda razonable. Si estoy metiendo punteros de variables locales, al salir
+		de esta función al destruirse las variables locales, no contendrán valores basura?
+		y sí! PERO la funcion vkCreateGraphicsPipelines lo que hace es pasarle a la GPU
+		todos esos punteros y CONSTRUYE los objetos necesarios en la VRAM para que se preserve
+		de esa manera al finalizar la función, poco importa que se pierda. Es la magia de Vulkan
+		y la GPU*/
 	VkGraphicsPipelineCreateInfo pipelineInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO,
