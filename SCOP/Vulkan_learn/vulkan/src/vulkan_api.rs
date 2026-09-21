@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/21 15:14:31 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/21 18:13:32 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,7 @@ pub struct FrameResources{
 }
 pub struct VulkanApi{
 	window:						Option<Window>,
+	event_pump:					Option<sdl2::EventPump>,
 	width:						u32,
 	height:						u32,
 	running:					bool,
@@ -103,6 +104,7 @@ impl VulkanApi{
 	pub fn new() -> Self{
 		Self {
 			window:						None,
+			event_pump:					None,
 			width: 						1280,
 			height:						720,
 			running:					false,
@@ -139,7 +141,7 @@ impl VulkanApi{
 /*	######################################################### 
  	#################### INITIALIZATION #####################
 	#########################################################	
- */
+*/
 impl VulkanApi {
 	fn show_error(&self, error_message: &str ) {
 		sdl2::messagebox::show_simple_message_box(
@@ -165,6 +167,13 @@ impl VulkanApi {
 				self.show_error("Error creating window. No video");
 				return false;
 			}
+
+			let Ok(event_pump) = sdl_init.event_pump() else { 
+				self.show_error("Error creating event pump");
+				return false;
+			};
+			self.event_pump = Some(event_pump); //for run() check events.
+
 		} else {
 			self.show_error("Error creating window. No SDL2 init");
 			return false;
@@ -235,8 +244,6 @@ impl VulkanApi {
 			self.show_error("Couldn't create command buffer objects");
 			return false;
 		}
-
-		
 		true
 	}
 
@@ -855,3 +862,56 @@ impl VulkanApi {
 }
 
 
+
+/*	######################################################### 
+ 	####################### RUNNING #########################
+	#########################################################	
+*/
+
+
+/*	When we save event_pump in structure, that gives us right to ask about
+	events changes. .poll_iter() search in operating system, change in the 
+	hardware (move mouse, change window size...), so that changes state of 
+	connection with system. That is the reason it needs to be &mut.
+	doc about resized event: 
+	https://docs.rs/sdl2/latest/sdl2/event/enum.WindowEvent.html
+	*/
+impl VulkanApi {
+	fn run(&mut self) {
+		let mut running = true;
+		
+		while running {
+			let Some(event_pump) = &mut self.event_pump else { return; };
+			for event in event_pump.poll_iter(){
+				match event {
+					sdl2::event::Event::Quit { .. } => { //{..} = ignore internal values
+						running = false;
+					}
+					
+					sdl2::event::Event::Window { win_event: sdl2::event::WindowEvent::Resized(w, h), .. } => { 
+						self.width = w as u32;
+						self.height = h as u32;
+						break;	
+					}
+
+					_ => {}
+				}
+			}
+			self.render();
+		}
+	}
+
+	fn render(&mut self) {
+		// first check if our swapchain is still valid
+		//device:						Option<ash::Device>, -> Some, None
+		let Some(device) = &self.device else { return; };
+		
+		if self.require_swapchain_recreate {
+			let Ok(()) = (unsafe{device.device_wait_idle()}) else { return; };
+		
+		
+		}
+	}
+
+
+}
