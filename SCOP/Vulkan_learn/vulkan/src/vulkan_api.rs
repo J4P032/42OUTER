@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/21 13:13:53 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/21 15:14:31 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -228,6 +228,11 @@ impl VulkanApi {
 
 		if !self.create_sync_resources() {
 			self.show_error("Couldn't create the sync related resources");
+			return false;
+		}
+
+		if !self.create_command_buffers() {
+			self.show_error("Couldn't create command buffer objects");
 			return false;
 		}
 
@@ -812,6 +817,36 @@ impl VulkanApi {
 				return false;
 			};
 			frame.image_adquired_semaphore = Some(semaphore2);
+		}
+		true
+	}
+
+	fn create_command_buffers(&mut self) -> bool {
+		let Some(device) = &self.device else { return false;};
+				
+		for frame in &mut self.frame_resources {
+			let pool_info = ash::vk::CommandPoolCreateInfo::default()
+				.queue_family_index(self.gfx_queue_fam_idx);
+			
+			let Ok(command_pool) = (unsafe{device.create_command_pool(&pool_info, None)}) else {
+				self.show_error("Unable to create command buffer pool");
+				return false;
+			};
+			frame.command_pool = Some(command_pool);
+
+			let cmd_alloc_info = ash::vk::CommandBufferAllocateInfo{
+
+				command_pool: command_pool,
+				level: ash::vk::CommandBufferLevel::PRIMARY,
+				command_buffer_count: 1,
+				..Default::default()
+			};
+			let Ok(command_buffer) = (unsafe{device.allocate_command_buffers(&cmd_alloc_info)}) else {
+				self.show_error("Unable to allocate command buffer");
+				return false;
+			};
+			let Some(command_buffer_first) = command_buffer.first().copied() else { return false;};
+			frame.command_buffer = Some(command_buffer_first);
 		}
 		true
 	}
