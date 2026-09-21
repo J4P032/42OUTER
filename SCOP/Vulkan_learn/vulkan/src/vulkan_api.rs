@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/18 12:52:04 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/21 13:13:53 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -226,7 +226,12 @@ impl VulkanApi {
 		};
 		self.pipeline = Some(pipeline);
 
+		if !self.create_sync_resources() {
+			self.show_error("Couldn't create the sync related resources");
+			return false;
+		}
 
+		
 		true
 	}
 
@@ -783,6 +788,35 @@ impl VulkanApi {
 		let Some(pipe) = pipes.into_iter().next() else { return None;};
 		Some(pipe)
 	}
+
+	fn create_sync_resources(&mut self) -> bool {
+		let Some(device) = &self.device else { return false;};
+		
+		let mut semaphore_type_info = ash::vk::SemaphoreTypeCreateInfo::default()
+			.semaphore_type(ash::vk::SemaphoreType::TIMELINE)
+			.initial_value(MAX_FRAMES_IN_FLIGHT as u64);
+		
+		let semaphore_info = ash::vk::SemaphoreCreateInfo::default();
+		semaphore_info.push_next(&mut semaphore_type_info);
+
+		let Ok(semaphore) = (unsafe {device.create_semaphore(&semaphore_info, None)}) else {
+			self.show_error("Unable to create the timeline semaphore");
+			return false;
+		};
+		self.timeline_semaphore = Some(semaphore);
+
+		for frame in &mut self.frame_resources {
+			let semaphore_info2 = ash::vk::SemaphoreCreateInfo::default();
+			let Ok(semaphore2) = (unsafe {device.create_semaphore(&semaphore_info2, None)}) else {
+				self.show_error("Error creating the per-frame image-acquire semaphore");
+				return false;
+			};
+			frame.image_adquired_semaphore = Some(semaphore2);
+		}
+		true
+	}
+
+	
 }
 
 
