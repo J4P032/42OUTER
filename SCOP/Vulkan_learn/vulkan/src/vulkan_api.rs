@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/21 18:13:32 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/22 13:11:05 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,6 +66,7 @@ pub struct VulkanApi{
 
 	//swapchain related
 	swapchain:					Option<SwapchainKHR>,
+	swapchain_loader:			Option<ash::khr::swapchain::Device>,
 	swapchain_images:			Vec<Image>,
 	swapchain_image_views:		Vec<ImageView>,
 	render_complete_semaphores:	Vec<Semaphore>,
@@ -119,6 +120,7 @@ impl VulkanApi{
 			gfx_queue_fam_idx:			u32::MAX,
 			gfx_queue:					None,
 			swapchain:					None,
+			swapchain_loader:			None,
 			swapchain_images:			Vec::<Image>::new(),
 			swapchain_image_views:		Vec::<ImageView>::new(),
 			render_complete_semaphores:	Vec::<Semaphore>::new(),
@@ -500,6 +502,7 @@ impl VulkanApi {
 			return false;
 		};
 		self.swapchain = Some(swapchain);
+		self.swapchain_loader = Some(swapchain_loader.clone());
 	
 		//3.Prepare Images
 		let Ok(swapchain_images) = (unsafe {swapchain_loader.get_swapchain_images(swapchain)}) else {
@@ -903,13 +906,46 @@ impl VulkanApi {
 
 	fn render(&mut self) {
 		// first check if our swapchain is still valid
-		//device:						Option<ash::Device>, -> Some, None
 		let Some(device) = &self.device else { return; };
 		
 		if self.require_swapchain_recreate {
 			let Ok(()) = (unsafe{device.device_wait_idle()}) else { return; };
 		
 		
+		}
+	}
+
+	fn destroy_swapchain(&mut self) {
+		let Some(device) = &self.device else { return; };
+		
+		//destroy all imageviews
+		for siv in &self.swapchain_image_views {
+			unsafe {device.destroy_image_view(*siv, None);};
+		}
+		self.swapchain_image_views.clear();
+		
+		//destroy all render semaphores
+		for rcs in &self.render_complete_semaphores {
+			unsafe { device.destroy_semaphore(*rcs, None);};
+		}
+		self.render_complete_semaphores.clear();
+
+		if let (Some(swapchain), Some(sloader)) = (&self.swapchain, &self.swapchain_loader) {
+			unsafe { sloader.destroy_swapchain(*swapchain, None); };
+			self.swapchain = None;
+		}
+
+		// destroy the depth buffer along with the swapchain
+		if let (Some(div), Some(vmaa), Some(dia), Some(di)) = (
+			&self.depth_image_view,
+			&self.vma_allocator,
+			&mut self.depth_image_allocation,
+			&self.depth_image,)
+		{		
+			unsafe { device.destroy_image_view(*div, None);};
+			unsafe { vmaa.destroy_image(*di, dia)}
+			self.depth_image_view = None;
+			self.depth_image = None;
 		}
 	}
 
