@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/22 13:11:05 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/22 17:15:57 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,6 +57,7 @@ pub struct VulkanApi{
 	physical_device:			Option<PhysicalDevice>,
 	device:						Option<ash::Device>,
 	surface:					Option<SurfaceKHR>,
+	surface_loader:				Option<ash::khr::surface::Instance>,
 	vma_allocator:				Option<vk_mem::Allocator>,
 	vulkan_entry:				Option<ash::Entry>,
 
@@ -115,6 +116,7 @@ impl VulkanApi{
 			physical_device:			None,
 			device:						None,
 			surface:					None,
+			surface_loader:				None,
 			vma_allocator:				None,
 			vulkan_entry:				None,
 			gfx_queue_fam_idx:			u32::MAX,
@@ -221,7 +223,7 @@ impl VulkanApi {
 			return false;
 		}
 
-		if !self.create_swap_chain(self.width, self.height){
+		if !self.create_swapchain(self.width, self.height){
 			self.show_error("Unable to create swapchain");
 			return false;
 		}
@@ -385,6 +387,7 @@ impl VulkanApi {
 			}
 		}
 
+		self.surface_loader = Some(surface_loader);
 		false
 	}
 
@@ -465,7 +468,7 @@ impl VulkanApi {
 	/*in C++ to find functions from KHR_Surface, que used Volk, but here we need
 		to separate it. So we need a surface_loader variable that loads all those functions
 		because they are not in basic ash instance. Same for swapchain creation*/
-	fn create_swap_chain(&mut self, width: u32, height: u32) -> bool{
+	fn create_swapchain(&mut self, width: u32, height: u32) -> bool{
 		self.swapchain_width = width;
 		self.swapchain_height = height;
 		
@@ -486,7 +489,7 @@ impl VulkanApi {
 		let swapchain_create_info = ash::vk::SwapchainCreateInfoKHR::default()
 			.surface(*surface)
 			.min_image_count(surface_caps.min_image_count.max(3))
-			.image_format(ash::vk::Format::B8G8R8_SRGB)
+			.image_format(ash::vk::Format::B8G8R8A8_SRGB)
 			.image_color_space(ash::vk::ColorSpaceKHR::SRGB_NONLINEAR)
 			.image_extent(ash::vk::Extent2D {width: self.swapchain_width, height: self.swapchain_height })
 			.image_array_layers(1)
@@ -906,13 +909,42 @@ impl VulkanApi {
 
 	fn render(&mut self) {
 		// first check if our swapchain is still valid
-		let Some(device) = &self.device else { return; };
+		let Some(device) = self.device.clone() else { return; };
 		
 		if self.require_swapchain_recreate {
 			let Ok(()) = (unsafe{device.device_wait_idle()}) else { return; };
-		
-		
+			self.destroy_swapchain();
+			self.create_swapchain(self.width, self.height);
+			self.require_swapchain_recreate = false;
 		}
+		
+		//create 2 'drawers' to do the job
+		let mut wait_value: u64;
+		let frame_res_index: u32 = self.frame_index % MAX_FRAMES_IN_FLIGHT as u32;
+		self.frame_index += 1;
+		let signal_value: u64 = self.next_signal_value as u64;
+		self.next_signal_value += 1;
+		if signal_value >= MAX_FRAMES_IN_FLIGHT as u64 {
+			wait_value = signal_value - MAX_FRAMES_IN_FLIGHT as u64;
+		} else {
+			wait_value = 0;
+		}
+		
+		
+		//timeline_semaphore:			Option<Semaphore>,
+		let Some(timeline_semaphore) = &self.timeline_semaphore else { return; };
+		let wait_info = ash::vk::SemaphoreWaitInfo {
+			semaphore_count: 1,
+			p_semaphores: timeline_semaphore,
+			p_values: &wait_value,
+			..Default::default()	
+		};
+		let Ok(wait_semaphores) = ( unsafe {device.wait_semaphores(&wait_info, u64::MAX)}) else { return;};
+		
+		// now its safe to start recording commands
+		
+		
+
 	}
 
 	fn destroy_swapchain(&mut self) {
@@ -948,6 +980,7 @@ impl VulkanApi {
 			self.depth_image = None;
 		}
 	}
+
 
 
 }
