@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/23 15:19:46 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/23 16:21:02 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -975,7 +975,57 @@ impl VulkanApi {
 		let Ok(()) = (unsafe {device.begin_command_buffer(*command_buffer, &cmd_begin_info)}) else { return; };
 	
 		// transition the color and depth images
+		let Some(depth_image) = &self.depth_image else { return; };
+		let layout_barriers = vec![
+			ash::vk::ImageMemoryBarrier2{
+				src_stage_mask: ash::vk::PipelineStageFlags2::COLOR_ATTACHMENT_OUTPUT,
+				src_access_mask: ash::vk::AccessFlags2::empty(),
+				dst_stage_mask: ash::vk::PipelineStageFlags2::COLOR_ATTACHMENT_OUTPUT,
+				dst_access_mask: ash::vk::AccessFlags2::COLOR_ATTACHMENT_WRITE,
+				old_layout: ash::vk::ImageLayout::UNDEFINED,
+				new_layout: ash::vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL,
+				image: self.swapchain_images[idx as usize],
+				subresource_range: ash::vk::ImageSubresourceRange{
+					aspect_mask: ash::vk::ImageAspectFlags::COLOR,
+					base_mip_level: 0,
+					level_count: 1,
+					base_array_layer: 0,
+					layer_count: 1,
+				},
+				..Default::default()
+			},
+			ash::vk::ImageMemoryBarrier2{
+				src_stage_mask: ash::vk::PipelineStageFlags2::EARLY_FRAGMENT_TESTS,
+				src_access_mask: ash::vk::AccessFlags2::empty(),
+				dst_stage_mask: ash::vk::PipelineStageFlags2::EARLY_FRAGMENT_TESTS |
+					ash::vk::PipelineStageFlags2::LATE_FRAGMENT_TESTS,
+				dst_access_mask: ash::vk::AccessFlags2::DEPTH_STENCIL_ATTACHMENT_WRITE,
+				old_layout: ash::vk::ImageLayout::UNDEFINED,
+				new_layout: ash::vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+				image: *depth_image,
+				
+				
+				subresource_range: ash::vk::ImageSubresourceRange{
+					aspect_mask: ash::vk::ImageAspectFlags::DEPTH,
+					base_mip_level: 0,
+					level_count: 1,
+					base_array_layer: 0,
+					layer_count: 1,
+				},
+				..Default::default()
+			}
+		];
 		
+		let dep_info = ash::vk::DependencyInfo{
+			image_memory_barrier_count: layout_barriers.len() as u32,
+			p_image_memory_barriers: layout_barriers.as_ptr(),
+			..Default::default()
+		};
+
+		unsafe{ device.cmd_pipeline_barrier2(*command_buffer, &dep_info)};
+
+		// setup the attachments (color and depth) and begin rendering (dynamic)
+
 	}
 
 	fn destroy_swapchain(&mut self) {
