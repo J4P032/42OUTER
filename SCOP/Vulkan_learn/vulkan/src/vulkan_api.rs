@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/22 17:16:58 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/23 15:19:46 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -137,7 +137,7 @@ impl VulkanApi{
 			vert_shader:				None,
 			frag_shader:				None,
 			timeline_semaphore:			None,
-			frame_resources:			std::array::from_fn(|_| FrameResources::new()), //from_fn obtain size of array and closure fills it with despate instances		
+			frame_resources:			std::array::from_fn(|_| FrameResources::new()), //from_fn obtain size of array and closure fills it with separate instances		
 		}
 	}
 }
@@ -930,8 +930,6 @@ impl VulkanApi {
 			wait_value = 0;
 		}
 		
-		
-		//timeline_semaphore:			Option<Semaphore>,
 		let Some(timeline_semaphore) = &self.timeline_semaphore else { return; };
 		let wait_info = ash::vk::SemaphoreWaitInfo {
 			semaphore_count: 1,
@@ -942,9 +940,42 @@ impl VulkanApi {
 		let Ok(wait_semaphores) = ( unsafe {device.wait_semaphores(&wait_info, u64::MAX)}) else { return;};
 		
 		// now its safe to start recording commands
+		let res = &mut self.frame_resources[frame_res_index as usize];
+		let Some(cpool) = &res.command_pool else { return; };
+		let Ok(()) = (unsafe {device.reset_command_pool(*cpool, ash::vk::CommandPoolResetFlags::empty())}) else { return; };
 		
+		// get the resources for this frame
+		let Some(ias) = &res.image_adquired_semaphore else { return; };
+		let Some(swapchain_loader) = &self.swapchain_loader else { return; };
+		let Some(swapchain) = &self.swapchain else { return; };
 		
+		// handle resize and out-of-date images, may need swapchain recreate
+		let result = (unsafe {swapchain_loader.acquire_next_image(*swapchain, u64::MAX, *ias, ash::vk::Fence::null())});
+		
+		let idx = match result{
+			Ok((image_index, is_suboptimal)) => {
+				if is_suboptimal { // returned an ash::vk::Result::VK_SUBOPTIMAL_KHR
+					self.require_swapchain_recreate = true;
+				}
+				image_index //need to return to preserve out of scope
+			},
+			
+			Err(ash::vk::Result::ERROR_OUT_OF_DATE_KHR) => {
+				self.require_swapchain_recreate = true;
+				return ;
+			}
+			
+			Err(e) => { return; }
+		};
 
+		// begin recording commands
+		let cmd_begin_info = ash::vk::CommandBufferBeginInfo::default()
+			.flags(ash::vk::CommandBufferUsageFlags::ONE_TIME_SUBMIT);
+		let Some(command_buffer) = &res.command_buffer else {return;};
+		let Ok(()) = (unsafe {device.begin_command_buffer(*command_buffer, &cmd_begin_info)}) else { return; };
+	
+		// transition the color and depth images
+		
 	}
 
 	fn destroy_swapchain(&mut self) {
