@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/24 16:55:41 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/24 20:00:45 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -517,7 +517,7 @@ impl VulkanApi {
 			let img_view_info = ash::vk::ImageViewCreateInfo::default()
 			.image(image)
 			.view_type(ash::vk::ImageViewType::TYPE_2D)
-			.format(ash::vk::Format::B8G8R8_SRGB)
+			.format(ash::vk::Format::B8G8R8A8_SRGB)
 			.subresource_range(ash::vk::ImageSubresourceRange {
 				aspect_mask : ash::vk::ImageAspectFlags::COLOR,
 				level_count : 1,
