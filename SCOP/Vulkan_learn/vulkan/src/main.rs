@@ -28,7 +28,7 @@ fn main() {
 
     let mut vulkan_api = VulkanApi::new();
     if vulkan_api.initialize() {
-
+        vulkan_api.run();
     }
 
 

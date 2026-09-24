@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/24 13:01:29 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/24 16:42:31 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -883,7 +883,7 @@ impl VulkanApi {
 	https://docs.rs/sdl2/latest/sdl2/event/enum.WindowEvent.html
 	*/
 impl VulkanApi {
-	fn run(&mut self) {
+	pub fn run(&mut self) {
 		let mut running = true;
 		
 		while running {
@@ -1062,15 +1062,119 @@ impl VulkanApi {
 			},
 			layer_count: 1,
 			color_attachment_count: 1,
-			p_color_attachments: &color_attach_info,
-			p_depth_attachment: &depth_attach_info,
+			p_color_attachments: [color_attach_info].as_ptr(),
+			p_depth_attachment: &depth_attach_info as *const _,
 			..Default::default()
 		};
 
 		// begin dynamic rendering
-
-
+		unsafe { device.cmd_begin_rendering(*command_buffer, &rendering_info) };
 		
+		//set the viewpot and scissor state
+		let viewport = ash::vk::Viewport {
+			x: 0.0, y: 0.0,
+			width: self.swapchain_width as f32,
+			height: self.swapchain_height as f32,
+			min_depth: 0.0, //min_depth & max_depth were not in C++
+			max_depth: 1.0
+		};
+		unsafe { device.cmd_set_viewport(*command_buffer, 0, &[viewport])}
+
+		let scissor = ash::vk::Rect2D {
+			offset: ash::vk::Offset2D {
+				x: 0, y: 0
+			},
+			extent: ash::vk::Extent2D {
+				width: self.swapchain_width,
+				height: self.swapchain_height
+			}
+		}; 
+		unsafe { device.cmd_set_scissor(*command_buffer, 0, &[scissor])}
+	
+		//draw our triangle
+		let Some(pipeline) = &self.pipeline else { return; };
+		unsafe { device.cmd_bind_pipeline(*command_buffer, ash::vk::PipelineBindPoint::GRAPHICS, *pipeline)}
+		unsafe { device.cmd_draw(*command_buffer, 3, 1, 0, 0) };
+	
+		//end dynamic rendering
+		unsafe { device.cmd_end_rendering(*command_buffer) };
+
+		//transition the image from color attachment to presentation so we can show it
+		let present_layout_barrier = ash::vk::ImageMemoryBarrier2 {
+			src_stage_mask: ash::vk::PipelineStageFlags2::COLOR_ATTACHMENT_OUTPUT,
+			src_access_mask: ash::vk::AccessFlags2::COLOR_ATTACHMENT_WRITE,
+			dst_stage_mask: ash::vk::PipelineStageFlags2::NONE,
+			dst_access_mask: ash::vk::AccessFlags2::empty(),
+			old_layout: ash::vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL,
+			new_layout: ash::vk::ImageLayout::PRESENT_SRC_KHR,
+			image: self.swapchain_images[idx as usize],
+			subresource_range: ash::vk::ImageSubresourceRange {
+				aspect_mask: ash::vk::ImageAspectFlags::COLOR,
+				base_mip_level: 0,
+				level_count: 1,
+				base_array_layer: 0,
+				layer_count: 1
+			},
+			..Default::default()
+		};
+
+		let present_dep_info = ash::vk::DependencyInfo {
+			image_memory_barrier_count: 1,
+			p_image_memory_barriers: &present_layout_barrier,
+			..Default::default()
+		};
+		unsafe { device.cmd_pipeline_barrier2(*command_buffer, &present_dep_info)};
+		let Ok(()) = (unsafe {device.end_command_buffer(*command_buffer)}) else { return; };
+		
+		//ensure swapchain image is actually vailable to start color output
+		let image_acquire_wait_info = ash::vk::SemaphoreSubmitInfo {
+			semaphore: *ias,
+			stage_mask: ash::vk::PipelineStageFlags2::COLOR_ATTACHMENT_OUTPUT, //wait before drawing to image
+			..Default::default()
+		};
+		//signal that the image can be presented
+		let Some(tls) = &self.timeline_semaphore else { return; };
+		let semaphore_signals = vec![
+			ash::vk::SemaphoreSubmitInfo { //render work completion signal
+				semaphore: self.render_complete_semaphores[idx as usize],
+				stage_mask: ash::vk::PipelineStageFlags2::ALL_GRAPHICS,
+				..Default::default()	
+			},
+			ash::vk::SemaphoreSubmitInfo { //entire frame is completed (timeline)
+				semaphore: *tls,
+				value: signal_value,
+				stage_mask: ash::vk::PipelineStageFlags2::ALL_COMMANDS,
+				..Default::default()
+			}
+		]; 
+		let cmd_submit_info = ash::vk::CommandBufferSubmitInfo {
+			command_buffer: *command_buffer,
+			..Default::default()
+		};
+		let submit_info = ash::vk::SubmitInfo2 {
+			wait_semaphore_info_count: 1,
+			p_wait_semaphore_infos: &image_acquire_wait_info, //ensure the image is ready
+			command_buffer_info_count: 1,
+			p_command_buffer_infos: &cmd_submit_info,
+			signal_semaphore_info_count: semaphore_signals.len() as u32,
+			p_signal_semaphore_infos: semaphore_signals.as_ptr(),
+			..Default::default()
+		};
+		let Some(gfx_queue) = &self.gfx_queue else { return; };
+		let Ok(()) = (unsafe{device.queue_submit2(*gfx_queue, &[submit_info], ash::vk::Fence::null())}) else { return; };
+	
+		//present the image
+		let present_info = ash::vk::PresentInfoKHR {
+			wait_semaphore_count: 1,
+			p_wait_semaphores: &self.render_complete_semaphores[idx as usize] as *const _,
+			swapchain_count: 1,
+			p_swapchains: &*swapchain as *const _, //because swapchain is reference, so first * and then obtain &
+			p_image_indices: &idx as *const _,
+			p_results: std::ptr::null_mut(),
+			..Default::default()
+		};
+		//let Some(surface_loader) = &self.surface_loader else { return; };
+		let Ok(_) = (unsafe{ swapchain_loader.queue_present(*gfx_queue, &present_info) }) else { return; };
 	}
 
 	fn destroy_swapchain(&mut self) {
