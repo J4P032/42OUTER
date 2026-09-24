@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/23 16:21:02 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/24 13:01:29 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1024,8 +1024,53 @@ impl VulkanApi {
 
 		unsafe{ device.cmd_pipeline_barrier2(*command_buffer, &dep_info)};
 
-		// setup the attachments (color and depth) and begin rendering (dynamic)
+		//setup the attachments (color and depth) and begin rendering (dynamic)
+		let color_attach_info = ash::vk::RenderingAttachmentInfo::default()
+			.image_view(self.swapchain_image_views[idx as usize])
+			.image_layout(ash::vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL)
+			.load_op(ash::vk::AttachmentLoadOp::CLEAR) //clear the image
+			.store_op(ash::vk::AttachmentStoreOp::STORE) //keep data for presentation
+			.clear_value(ash::vk::ClearValue{
+				color: ash::vk::ClearColorValue{
+					float32: [0.01, 0.01, 0.01, 1.0]
+				}
+			}
+		);
+		let Some(div) = &self.depth_image_view else { return ;};
+		let depth_attach_info = ash::vk::RenderingAttachmentInfo::default()
+			.image_view(*div)
+			.image_layout(ash::vk::ImageLayout::DEPTH_ATTACHMENT_OPTIMAL)
+			.load_op(ash::vk::AttachmentLoadOp::CLEAR) //clear the depth data
+			.store_op(ash::vk::AttachmentStoreOp::DONT_CARE) //don't care after rendering
+			.clear_value(ash::vk::ClearValue{
+				depth_stencil: ash::vk::ClearDepthStencilValue{
+					depth: 1.0,
+					stencil: 0
+				}
+			});
 
+		let rendering_info = ash::vk::RenderingInfo {
+			render_area: ash::vk::Rect2D {
+				offset: ash::vk::Offset2D {
+					x: 0,
+					y: 0
+				},
+				extent: ash::vk::Extent2D {
+					width: self.swapchain_width,
+					height: self.swapchain_height
+				}
+			},
+			layer_count: 1,
+			color_attachment_count: 1,
+			p_color_attachments: &color_attach_info,
+			p_depth_attachment: &depth_attach_info,
+			..Default::default()
+		};
+
+		// begin dynamic rendering
+
+
+		
 	}
 
 	fn destroy_swapchain(&mut self) {
