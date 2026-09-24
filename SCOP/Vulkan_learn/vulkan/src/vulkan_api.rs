@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/24 16:42:31 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/24 16:55:41 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -1001,7 +1001,7 @@ impl VulkanApi {
 					ash::vk::PipelineStageFlags2::LATE_FRAGMENT_TESTS,
 				dst_access_mask: ash::vk::AccessFlags2::DEPTH_STENCIL_ATTACHMENT_WRITE,
 				old_layout: ash::vk::ImageLayout::UNDEFINED,
-				new_layout: ash::vk::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+				new_layout: ash::vk::ImageLayout::DEPTH_ATTACHMENT_OPTIMAL,
 				image: *depth_image,
 				
 				
