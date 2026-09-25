@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/24 20:00:45 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/25 13:11:52 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -102,7 +102,78 @@ impl FrameResources {
 	}
 }
 
+/*Compute_wait_value is new from C++ problem is that 
+it starts sycronization different from c++ so a black
+screen was showed. Here explanation in spanish:
+
+
+En C++ del tutorial se usa un Timeline Semaphore para evitar que la CPU reutilice
+un frame antes de que la GPU haya terminado con él. La idea es muy simple:
+“cada frame tiene un valor de señalización”, y la CPU solo puede volver a trabajar
+con ese frame cuando la GPU ya ha pasado el valor esperado.
+
+La estructura se compone de dos cosas:
+- frameResIndex: el “cajón” o slot de frame que vamos a usar (0 o 1)
+- signalValue: el valor actual que vamos a enviar a la GPU cuando terminemos el frame
+
+En el tutorial se hace esto:
+
+    const uint32_t frameResIndex = frameIndex++ % MaxFramesInFlight;
+    const uint64_t signalValue = nextSignalValue++;
+    const uint64_t waitValue = signalValue - MaxFramesInFlight;
+
+Eso significa:
+- cada frame nuevo obtiene un número mayor
+- la CPU espera a que la GPU haya alcanzado el valor del frame anterior
+- así evita escribir sobre recursos todavía en uso
+
+Y luego:
+
+    VkSemaphoreWaitInfo waitInfo {
+        .pSemaphores = &timelineSemaphore,
+        .pValues = &waitValue
+    };
+    vkWaitSemaphores(device, &waitInfo, UINT64_MAX);
+
+Esto hace que la CPU espere hasta que el timeline semaphore alcance ese valor.
+Si la GPU todavía está dibujando el frame anterior, la CPU se queda bloqueada
+hasta que termine. De ese modo no se reutiliza el mismo command buffer ni
+el mismo slot de frame antes de tiempo.
+
+En Rust, el patrón equivalente es el mismo, pero la clave está en que:
+- el valor inicial del timeline semaphore debe ser coherente con la secuencia
+- el valor de waitValue debe ser calculado siempre a partir del signalValue
+- y next_signal_value no puede empezar “desfasado” respecto a ese sistema
+
+Si arrancas con un valor inicial incorrecto o con una resta que no coincide
+con la lógica del contador, la CPU queda esperando un valor que la GPU nunca
+va a señalar, y aunque el programa “se mueva”, el render puede seguir vivo
+pero sin producir imagen útil. Eso se ve como una ventana negra o un frame
+que nunca llega a mostrarse.
+
+Por eso el equivalente Rust de:
+    signalValue = nextSignalValue++;
+    waitValue = signalValue - MaxFramesInFlight;
+
+no es solo un “++” o un “+= 1”; es todo el sistema de sincronización:
+contador + semáforo + valor inicial + waitValue.
+
+En resumen:
+este bloque no está “de más”, es la parte que evita:
+- escribir sobre un frame que aún está siendo renderizado
+- presentar imágenes inconsistentes
+- mezclar frames de la GPU con la CPU
+
+Es la pieza que hace que el render sea seguro, estable y visible.
+
+*/
+
 impl VulkanApi{
+	fn compute_wait_value(signal_value: u64) -> u64 {
+		let previous_frame_offset = (MAX_FRAMES_IN_FLIGHT as u64).saturating_sub(1);
+		signal_value.saturating_sub(previous_frame_offset)
+	}
+
 	pub fn new() -> Self{
 		Self {
 			window:						None,
@@ -111,7 +182,7 @@ impl VulkanApi{
 			height:						720,
 			running:					false,
 			frame_index:				0,
-			next_signal_value:			(MAX_FRAMES_IN_FLIGHT + 1) as u32,
+			next_signal_value:			1,
 			vulkan_instance:			None,
 			physical_device:			None,
 			device:						None,
@@ -812,7 +883,7 @@ impl VulkanApi {
 		
 		let mut semaphore_type_info = ash::vk::SemaphoreTypeCreateInfo::default()
 			.semaphore_type(ash::vk::SemaphoreType::TIMELINE)
-			.initial_value(MAX_FRAMES_IN_FLIGHT as u64);
+			.initial_value(0);
 		
 		let semaphore_info = ash::vk::SemaphoreCreateInfo::default();
 		semaphore_info.push_next(&mut semaphore_type_info);
@@ -919,16 +990,11 @@ impl VulkanApi {
 		}
 		
 		//create 2 'drawers' to do the job
-		let mut wait_value: u64;
 		let frame_res_index: u32 = self.frame_index % MAX_FRAMES_IN_FLIGHT as u32;
 		self.frame_index += 1;
 		let signal_value: u64 = self.next_signal_value as u64;
+		let wait_value: u64 = Self::compute_wait_value(signal_value);
 		self.next_signal_value += 1;
-		if signal_value >= MAX_FRAMES_IN_FLIGHT as u64 {
-			wait_value = signal_value - MAX_FRAMES_IN_FLIGHT as u64;
-		} else {
-			wait_value = 0;
-		}
 		
 		let Some(timeline_semaphore) = &self.timeline_semaphore else { return; };
 		let wait_info = ash::vk::SemaphoreWaitInfo {
