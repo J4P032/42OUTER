@@ -1,25 +1,13 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Tool.hpp                                           :+:      :+:    :+:   */
+/*   Tool.cpp                                           :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/09/29 14:11:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/29 15:02:15 by jrollon-         ###   ########.fr       */
+/*   Created: 2026/09/29 14:40:00 by jrollon-          #+#    #+#             */
+/*   Updated: 2026/09/29 14:40:25 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef TOOL_HPP
-# define TOOL_HPP
-
-class Tool {
-public:
-	Tool(){}
-	virtual ~Tool(){}
-
-	virtual void use() = 0;
-};
-
-
-#endif
+#include "Tool.hpp"

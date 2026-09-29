@@ -1,25 +1,14 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Tool.hpp                                           :+:      :+:    :+:   */
+/*   Shovel.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/09/29 14:11:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/29 15:02:15 by jrollon-         ###   ########.fr       */
+/*   Created: 2026/09/29 14:34:56 by jrollon-          #+#    #+#             */
+/*   Updated: 2026/09/29 14:56:25 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#ifndef TOOL_HPP
-# define TOOL_HPP
+#include "Shovel.hpp"
 
-class Tool {
-public:
-	Tool(){}
-	virtual ~Tool(){}
-
-	virtual void use() = 0;
-};
-
-
-#endif

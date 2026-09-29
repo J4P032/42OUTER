@@ -2,7 +2,9 @@ CXX = c++
 CFLAGS = -Wall -Wextra -Werror -std=c++98
 
 NAME = work
-SRC = 	Worker.cpp \
+SRC = 	Worker.cpp\
+		Tool.cpp\
+		Shovel.cpp\
 		main.cpp
 	
 OBJDIR = obj
