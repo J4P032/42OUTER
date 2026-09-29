@@ -6,14 +6,14 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 11:57:39 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/29 12:55:54 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/29 18:39:52 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Worker.hpp"
 
 int	main(void) {
-	Worker	t1((Position(1,2,3)), (Statistic()));
+	Worker	t1((Position(1,2,3)), (Statistic()), "Manolo");
 	std::cout << t1 << std::endl;
 
 	return 0;
