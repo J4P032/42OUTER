@@ -6,18 +6,16 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 13:59:03 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/29 18:43:06 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/30 11:59:01 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SHOVEL_HPP
 # define SHOVEL_HPP
 
-# include <iostream>
 # include "Tool.hpp"
 # include "Worker.hpp"
-# include <vector>
-# include <algorithm>
+
 
 struct Shovel : public Tool {
 private:
@@ -26,33 +24,40 @@ private:
 	
 
 public:
-	Shovel() : numberOfUses(0) {}
-	Shovel(const Shovel& other) : numberOfUses(other.numberOfUses), worker_assigned(NULL) {}
+	Shovel() : numberOfUses(0) {
+		std::cout << GREEN"[🪏] created." << RESET << std::endl;
+		
+	}
+	Shovel(const Shovel& other) : numberOfUses(other.numberOfUses), worker_assigned(NULL) {
+		std::cout << GREEN"[🪏] cloned from other. But not assigned to anyone" << RESET << std::endl;	
+	}
 	Shovel& operator=(const Shovel& other) {
 		if (this != &other){
 			numberOfUses = other.numberOfUses;
 		}
+		std::cout << YELLOW"[🪏] copied from other. But not assigned to anyone" << RESET << std::endl;	
 		return *this;
 	}
-	~Shovel() {}
+	~Shovel() {
+		std::cout << RED"[🔨] destroyed." << RESET << std::endl;	
+		if (worker_assigned){ worker_assigned->removeTool(this); }
+	}
 
 	void	use(Worker* w) {
 		if (!w)
 			return;
-		if (worker_assigned){
-			std::vector<Tool*>& tools = worker_assigned->getTools();
-			std::vector<Tool*>::iterator it;
-			it = std::find(tools.begin(), tools.end(), this);
-			if (it != tools.end()){
-				tools.erase(it);
-			}
-		}
+		
+		//1.Revove tool from previous worker
+		if (worker_assigned){ worker_assigned->removeTool(this); }
+		
+		//2.Give the shovel to the new worker
 		worker_assigned = w;
-		w->addTools(this);
+		w->addTool(this);
+		
+		//3.print and increase use.
 		numberOfUses++;
-		std::cout << "[shovel] used by " << w->getName() << std::endl;
+		std::cout << "[🪏] used by " << w->getName() << ". Num of uses: " << numberOfUses << std::endl;
 	}
 };
-
 
 #endif

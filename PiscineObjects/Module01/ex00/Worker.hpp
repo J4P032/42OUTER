@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 11:51:00 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/29 18:44:51 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/30 11:53:14 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,9 +40,15 @@ public:
 	}
 	~Worker(){}
 
-	std::vector<Tool*>& getTools() { return tools; }
+	void	addTool(Tool* tool) { tools.push_back(tool); }
 
-	void	addTools(Tool* tool) { tools.push_back(tool); }
+	void	removeTool(Tool* tool) {
+		if (!tool)
+			return;
+		std::vector<Tool*>::iterator it;
+		it = std::find(tools.begin(), tools.end(), tool);
+		if (it != tools.end()){ tools.erase(it); }
+	}
 
 	const std::string&	getName() const { return name; } 
 	
@@ -51,6 +57,5 @@ public:
 		return out;
 	} 
 };
-
 
 #endif
