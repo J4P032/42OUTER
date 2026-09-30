@@ -5,6 +5,7 @@ NAME = work
 SRC = 	Worker.cpp\
 		Tool.cpp\
 		Shovel.cpp\
+		Hammer.cpp\
 		main.cpp
 	
 OBJDIR = obj

@@ -6,9 +6,10 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 14:34:56 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/29 14:56:25 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/30 13:16:03 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Shovel.hpp"
 
+size_t Shovel::id_counter = 0;

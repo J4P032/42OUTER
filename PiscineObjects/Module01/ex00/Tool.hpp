@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 14:11:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/30 11:38:13 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/30 12:34:47 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ public:
 	virtual ~Tool(){}
 
 	virtual void use(Worker* w) = 0;
+	virtual void liberateTool(void) = 0;
 };
 
 

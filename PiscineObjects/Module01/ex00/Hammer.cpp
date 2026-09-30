@@ -1,15 +1,15 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   Worker.cpp                                         :+:      :+:    :+:   */
+/*   Hammer.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2026/09/29 11:57:06 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/30 13:13:40 by jrollon-         ###   ########.fr       */
+/*   Created: 2026/09/30 13:04:25 by jrollon-          #+#    #+#             */
+/*   Updated: 2026/09/30 13:21:17 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "Worker.hpp"
+#include "Hammer.hpp"
 
-size_t Worker::id_counter = 0;
+size_t Hammer::id_counter = 0;

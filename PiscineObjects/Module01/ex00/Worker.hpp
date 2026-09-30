@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 11:51:00 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/30 11:53:14 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/09/30 15:16:28 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,22 +23,45 @@ class Worker {
 private:
 	Position			coordonnee;
 	Statistic			stat;
-	std::string			name;
+	static size_t		id_counter;
+	size_t				id;
 	std::vector<Tool*>	tools;
 	
 public:
-	Worker() : name("Bob") {}
-	Worker(Position pos, Statistic stat, std::string name) : coordonnee(pos), stat(stat), name(name) {}
-	Worker(const Worker& other) : coordonnee(other.coordonnee), stat(other.stat), name(other.name) {}
+	Worker() : coordonnee(Position()), stat(Statistic()), id(id_counter++) {
+		std::cout << GREEN"[👷" << id << "] created." << RESET << std::endl;
+	}
+	Worker(Position pos, Statistic stat) : coordonnee(pos), stat(stat), id(id_counter++) {
+		std::cout << GREEN"[👷" << id << "] created." << RESET << std::endl;
+	}
+	Worker(const Worker& other) : coordonnee(other.coordonnee), stat(other.stat), id(id_counter++) {
+		std::cout << GREEN"[👷" << id << "] cloned from other" << RESET << std::endl;	
+	}
 	Worker& operator=(const Worker& other) {
 		if (this != &other){
+			//1.clean tools before copy
+			std::vector<Tool*>::iterator it = tools.begin();
+			for (; it != tools.end(); it++){
+				if (*it){
+					(*it)->liberateTool();
+				}
+			}
+			tools.clear();
+			//2.copy
 			coordonnee = other.coordonnee;
 			stat = other.stat;
-			name = other.name;
 		}
+		std::cout << YELLOW"[👷" << id << "] copied from other." << RESET << std::endl;	
 		return *this;
 	}
-	~Worker(){}
+	~Worker(){
+		std::cout << RED"[👷" << id << "] destroyed." << RESET << std::endl;
+		std::vector<Tool*>::iterator it = tools.begin();
+		for (; it != tools.end(); it++){
+			if (*it)
+				(*it)->liberateTool(); //tool is unassigned
+		}	
+	}
 
 	void	addTool(Tool* tool) { tools.push_back(tool); }
 
@@ -47,13 +70,16 @@ public:
 			return;
 		std::vector<Tool*>::iterator it;
 		it = std::find(tools.begin(), tools.end(), tool);
-		if (it != tools.end()){ tools.erase(it); }
+		if (it != tools.end()){
+			tools.erase(it);
+			tool->liberateTool();
+		}
 	}
 
-	const std::string&	getName() const { return name; } 
+	size_t	getName() const { return id; } 
 	
 	friend	std::ostream& operator<<(std::ostream& out, const Worker& w) {
-		out << w.name << ": [coord]: " << w.coordonnee << " [stat]: " << w.stat;
+		out << "worker" << w.id << ": " << BLUE "[coord]: " << w.coordonnee << MAGENTA" [stat]: " <<  w.stat << RESET;
 		return out;
 	} 
 };
