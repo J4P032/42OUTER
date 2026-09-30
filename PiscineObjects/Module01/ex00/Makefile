@@ -6,6 +6,7 @@ SRC = 	Worker.cpp\
 		Tool.cpp\
 		Shovel.cpp\
 		Hammer.cpp\
+		Workshop.cpp\
 		main.cpp
 	
 OBJDIR = obj
