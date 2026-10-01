@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 11:57:06 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/01 16:21:10 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/01 16:39:52 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,9 +63,9 @@ void	Worker::addTool(Tool* tool) {
 	tools.push_back(tool);
 	std::cout << CYAN"[👷" << id << "] takes ";
 	if (dynamic_cast<Shovel*>(tool)){
-		std::cout << "[🪏 " << id << "]" << RESET << std::endl;
+		std::cout << "[🪏 " << tool->getid() << "]" << RESET << std::endl;
 	} else {
-		std::cout << "[🔨" << id << "]" << RESET << std::endl;
+		std::cout << "[🔨" << tool->getid() << "]" << RESET << std::endl;
 	}
 }
 

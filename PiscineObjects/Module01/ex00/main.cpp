@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 11:57:39 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/01 16:25:49 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/01 16:41:24 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,7 +24,25 @@ void	clearScreen() {
 }
 
 
-int	main(void) {
+int main(void) {
+	clearScreen();
+	Worker	w0;
+	Tool* h0 = new Hammer();
+	Tool* h1 = new Hammer();
+	
+	h0->use(&w0);
+	h1->use(&w0);
+	std::cout << w0 << std::endl;
+	h0->liberateTool();
+	std::cout << w0 << std::endl;
+	delete h0;
+	delete h1;
+	h0 = NULL;
+	h1 = NULL;
+	return 0;
+}
+
+/* int	main(void) {
 	clearScreen();
 	Worker	w0((Position(1,2,3)), (Statistic()));
 	Worker	w1;
@@ -81,7 +99,7 @@ int	main(void) {
 	delete h0;
 	
 	return 0;
-}
+} */
 
 /* Todo:
 	✅1. In case of deletion of the Worker, the Shovel must not be destroyed
