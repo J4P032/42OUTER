@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 13:59:03 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/30 17:58:59 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/01 14:16:04 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ public:
 	void	liberateTool(void);
 	void	use(Worker* w);
 	size_t	getid() const;
+
+	void	stream_insert(std::ostream& out) const;
 };
 
 #endif

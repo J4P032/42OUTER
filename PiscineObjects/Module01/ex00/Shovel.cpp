@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 14:34:56 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/30 17:59:14 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/01 16:04:57 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,8 +33,8 @@ Shovel& Shovel::operator=(const Shovel& other) {
 }
 
 Shovel::~Shovel() {
-	std::cout << RED"[🪏 " << id << "] destroyed." << RESET << std::endl;	
 	if (worker_assigned){ worker_assigned->removeTool(this); }
+	std::cout << RED"[🪏 " << id << "] destroyed." << RESET << std::endl;	
 }
 
 
@@ -44,8 +44,12 @@ Shovel::~Shovel() {
 
 
 void	Shovel::liberateTool(void) {
-	worker_assigned = NULL;
-	std::cout << CYAN"[🪏 " << id << "] liberated." << RESET << std::endl;
+	if (worker_assigned){
+		Worker* temp = worker_assigned;
+		worker_assigned = NULL;
+		std::cout << CYAN"[🪏 " << id << "] was liberated." << RESET << std::endl;
+		temp->removeTool(this);
+	}
 }
 
 void	Shovel::use(Worker* w) {
@@ -58,7 +62,31 @@ void	Shovel::use(Worker* w) {
 	w->addTool(this);
 	//3.print and increase use.
 	numberOfUses++;
-	std::cout << "[🪏 " << id << "] used by Worker" << w->getName() << ". Num of uses: " << numberOfUses << std::endl;
+	std::cout << CYAN"[🪏 " << id << "] used by [👷" << w->getName() << "]. Num of uses: " << numberOfUses << RESET << std::endl;
 }
 
 size_t	Shovel::getid() const { return id; }
+
+void	Shovel::stream_insert(std::ostream& out) const {
+	out << BLUE"[🪏 " << id << "]";
+	switch (numberOfUses){
+		case 0:
+			out << " never used.";
+			break;
+		case 1:
+			out << " used once.";
+			break;
+		case 2:
+			out << " used twice.";
+			break;
+		default:
+			out << " used " << numberOfUses << " times.";
+			break;
+	}
+	out << " Now used by ";
+	if (worker_assigned) {
+		out << "[👷" << worker_assigned->getName() << "]" << RESET;
+	} else {
+		out << "nobody" << RESET;
+	}
+}

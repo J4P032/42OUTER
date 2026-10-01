@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 18:26:52 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/30 18:13:56 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/01 14:14:18 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ public:
 	void	use(Worker* w);
 	size_t	getid() const;
 	
+	void stream_insert(std::ostream& out) const;
 };
 
 #endif

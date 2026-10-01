@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 14:11:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/30 12:34:47 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/01 14:58:30 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,13 @@ public:
 
 	virtual void use(Worker* w) = 0;
 	virtual void liberateTool(void) = 0;
+	virtual void stream_insert(std::ostream& out) const = 0;
+	virtual size_t getid() const = 0;
+
+	friend std::ostream& operator<<(std::ostream& out, const Tool& t) {
+		t.stream_insert(out);
+		return out;
+	}
 };
 
 

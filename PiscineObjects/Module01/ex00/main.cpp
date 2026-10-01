@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 11:57:39 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/30 15:23:53 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/01 16:25:49 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,24 +26,67 @@ void	clearScreen() {
 
 int	main(void) {
 	clearScreen();
-	Worker	w1((Position(1,2,3)), (Statistic()));
-	Worker	w2;
-	std::cout << w1 << std::endl;
-	Tool* s1 = new Shovel();
-	Tool* h1 = new Hammer();
-	s1->use(&w1);
-	h1->use(&w1);
+	Worker	w0((Position(1,2,3)), (Statistic()));
+	Worker	w1;
+	std::cout << w0 << std::endl;
+	Tool* s0 = new Shovel();
+	Tool* h0 = new Hammer();
+	s0->use(&w0);
+	h0->use(&w0);
 	
-	w1 = w2;
+	{
+		std::cout << std::endl;
+		std::cout << "REMOVE OF A WORKER TEST" << std::endl;
+		std::cout << w0 << std::endl;
+		Worker w2;
+		std::cout << w2 << std::endl;
+		if (h0)
+			std::cout << *h0 << std::endl;
+		
+		h0->use(&w2);
+		std::cout << w0 << std::endl;
+		std::cout << w2 << std::endl;
+		std::cout << "END of REMOVE OF A WORKER TEST" << std::endl;
+		std::cout << std::endl;
+	}
+	
+	std::cout << w0 << std::endl;
+	
+	
+	if (s0)
+		std::cout << *s0 << std::endl;
+	if (h0)
+		std::cout << *h0 << std::endl;
+	
+	std::cout << w0 << std:: endl;
+	
+	
+	
+	h0->liberateTool();
 
-	delete s1; delete h1;
+	if (h0)
+		std::cout << *h0 << std::endl;
+
+	std::cout << w0 << std:: endl;
+
+	
+	std::cout << w1 << std:: endl;
+	
+	w0 = w1;
+	
+	std::cout << w0 << std:: endl;
+	
+
+	delete s0; 
+	delete h0;
 	
 	return 0;
 }
 
 /* Todo:
-	1. In case of deletion of the Worker, the Shovel must not be destroyed
+	✅1. In case of deletion of the Worker, the Shovel must not be destroyed
 		debo poner el Worker*	worker_assigned; a NULL
 	✅2. Each tool must have a number of uses and a use method that indicates what tool it is.
 
+	✅3. si delete herramienta, he de eliminarla del trabajador si esta asignada.
 */
