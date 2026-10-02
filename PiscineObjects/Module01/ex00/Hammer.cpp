@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 13:04:25 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/01 16:05:06 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/02 15:32:47 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 size_t Hammer::id_counter = 0;
 
-Hammer::Hammer() : id(id_counter++), numberOfUses(0) {
+Hammer::Hammer() : id(id_counter++), numberOfUses(0), worker_assigned(NULL) {
 	std::cout << GREEN"[🔨" << id << "] created." << RESET << std::endl;
 }
 

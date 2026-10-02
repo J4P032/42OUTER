@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 11:57:39 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/02 14:17:30 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/02 16:39:33 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,90 +25,45 @@ void	clearScreen() {
 	#endif
 }
 
-
 int main(void) {
 	clearScreen();
-	Workshop* B0 = G.newWorkshop();
-	(void)B0;	
+	Workshop* workshop0 = G.newWorkshop();
+	(void)workshop0;
 
-	Worker	w0;
-	Tool* h0 = new Hammer();
-	Tool* h1 = new Hammer();
 	
-	h0->use(&w0);
-	h1->use(&w0);
-	std::cout << w0 << std::endl;
-	h0->liberateTool();
-	std::cout << w0 << std::endl;
+	std::cout << std::endl << "###### WORKERS and TOOLS CREATION ######" << std::endl;
+	Worker*	worker0 = G.newWorker();
+	Tool* hammer0 = G.newHammer();
+	Tool* hammer1 = G.newHammer();
+	std::cout << *worker0 << std::endl;
+	std::cout << *hammer0 << std::endl;
+	std::cout << *hammer1 << std::endl;
 	
+	std::cout << std::endl << "###### USE of TOOLS ######" << std::endl;
+	hammer0->use(worker0);
+	hammer1->use(worker0);
+	std::cout << *worker0 << std::endl;
+	std::cout << *hammer0 << std::endl;
+	std::cout << *hammer1 << std::endl;
+
+
+	std::cout << std::endl << "###### LIBERATION OF TOOL ######" << std::endl;
+	hammer0->liberateTool();
+	std::cout << *worker0 << std::endl;
+	std::cout << *hammer0 << std::endl;
+	std::cout << *hammer1 << std::endl;
+	
+	std::cout << std::endl << "###### OTHER WORKER TAKES worker0 TOOL ######" << std::endl;
+	Worker* worker1 = G.newWorker();
+	hammer1->use(worker1);
+	std::cout << *worker0 << std::endl;
+	std::cout << *worker1 << std::endl;
+	std::cout << *hammer0 << std::endl;
+	std::cout << *hammer1 << std::endl;
+
 	G.cleanAll();
-	
-	
-	delete h0;
-	delete h1;
-	h0 = NULL;
-	h1 = NULL;
 	return 0;
 }
-
-/* int	main(void) {
-	clearScreen();
-	Worker	w0((Position(1,2,3)), (Statistic()));
-	Worker	w1;
-	std::cout << w0 << std::endl;
-	Tool* s0 = new Shovel();
-	Tool* h0 = new Hammer();
-	s0->use(&w0);
-	h0->use(&w0);
-	
-	{
-		std::cout << std::endl;
-		std::cout << "REMOVE OF A WORKER TEST" << std::endl;
-		std::cout << w0 << std::endl;
-		Worker w2;
-		std::cout << w2 << std::endl;
-		if (h0)
-			std::cout << *h0 << std::endl;
-		
-		h0->use(&w2);
-		std::cout << w0 << std::endl;
-		std::cout << w2 << std::endl;
-		std::cout << "END of REMOVE OF A WORKER TEST" << std::endl;
-		std::cout << std::endl;
-	}
-	
-	std::cout << w0 << std::endl;
-	
-	
-	if (s0)
-		std::cout << *s0 << std::endl;
-	if (h0)
-		std::cout << *h0 << std::endl;
-	
-	std::cout << w0 << std:: endl;
-	
-	
-	
-	h0->liberateTool();
-
-	if (h0)
-		std::cout << *h0 << std::endl;
-
-	std::cout << w0 << std:: endl;
-
-	
-	std::cout << w1 << std:: endl;
-	
-	w0 = w1;
-	
-	std::cout << w0 << std:: endl;
-	
-
-	delete s0; 
-	delete h0;
-	
-	return 0;
-} */
 
 /* Todo:
 	✅1. In case of deletion of the Worker, the Shovel must not be destroyed

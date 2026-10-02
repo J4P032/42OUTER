@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 14:34:56 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/01 16:04:57 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/02 15:33:33 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,7 +14,7 @@
 
 size_t Shovel::id_counter = 0;
 
-Shovel::Shovel() :  id(id_counter++), numberOfUses(0) {
+Shovel::Shovel() :  id(id_counter++), numberOfUses(0), worker_assigned(NULL) {
 	std::cout << GREEN"[🪏 " << id << "] created." << RESET << std::endl;
 }
 
