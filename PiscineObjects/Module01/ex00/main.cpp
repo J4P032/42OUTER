@@ -6,13 +6,15 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 11:57:39 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/01 16:41:24 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/02 14:17:30 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#include "Garbage.hpp"
 #include "Worker.hpp"
 #include "Shovel.hpp"
 #include "Hammer.hpp"
+#include "Workshop.hpp"
 #include <cstdlib>
 
 void	clearScreen() {
@@ -26,6 +28,9 @@ void	clearScreen() {
 
 int main(void) {
 	clearScreen();
+	Workshop* B0 = G.newWorkshop();
+	(void)B0;	
+
 	Worker	w0;
 	Tool* h0 = new Hammer();
 	Tool* h1 = new Hammer();
@@ -35,6 +40,10 @@ int main(void) {
 	std::cout << w0 << std::endl;
 	h0->liberateTool();
 	std::cout << w0 << std::endl;
+	
+	G.cleanAll();
+	
+	
 	delete h0;
 	delete h1;
 	h0 = NULL;
