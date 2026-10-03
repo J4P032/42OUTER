@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 11:57:06 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/02 12:46:31 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/03 18:05:05 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -60,6 +60,9 @@ Worker::~Worker(){
 /////////////////////////////////////
 
 void	Worker::addTool(Tool* tool) { 
+	if (!tool){
+		throw std::runtime_error("Worker cannot take a NULL tool");
+	}
 	tools.push_back(tool);
 	std::cout << CYAN"[👷" << id << "] takes ";
 	if (dynamic_cast<Shovel*>(tool)){
@@ -70,8 +73,9 @@ void	Worker::addTool(Tool* tool) {
 }
 
 void	Worker::removeTool(Tool* tool) {
-	if (!tool)
-		return;
+	if (!tool){
+		throw std::runtime_error("Worker cannot remove a NULL tool");
+	}
 	std::vector<Tool*>::iterator it;
 	it = std::find(tools.begin(), tools.end(), tool);
 	if (it != tools.end()){

@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 14:34:56 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/02 15:33:33 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/03 18:07:32 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,8 +53,10 @@ void	Shovel::liberateTool(void) {
 }
 
 void	Shovel::use(Worker* w) {
-	if (!w)
-		return;
+	if (!w) {
+		throw std::runtime_error("Worker have to be someone ");
+	}
+	
 	//1.Revove tool from previous worker
 	if (worker_assigned){ worker_assigned->removeTool(this); }
 	//2.Give the shovel to the new worker

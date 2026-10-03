@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 13:04:25 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/02 15:32:47 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/03 18:06:52 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -54,8 +54,9 @@ void	Hammer::liberateTool(void) {
 }
 
 void	Hammer::use(Worker* w) {
-	if (!w)
-		return;
+	if (!w){
+		throw std::runtime_error("Worker have to be someone ");
+	}
 	//1. take hammer from worker if have it.
 	if (worker_assigned){ worker_assigned->removeTool(this); }
 	//2.Give the hammer to the new worker
