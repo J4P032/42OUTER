@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 11:57:39 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/02 16:39:33 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/03 17:56:08 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,7 +25,7 @@ void	clearScreen() {
 	#endif
 }
 
-int main(void) {
+void run(void) {
 	clearScreen();
 	Workshop* workshop0 = G.newWorkshop();
 	(void)workshop0;
@@ -60,15 +60,20 @@ int main(void) {
 	std::cout << *worker1 << std::endl;
 	std::cout << *hammer0 << std::endl;
 	std::cout << *hammer1 << std::endl;
+}
 
-	G.cleanAll();
+int	main(void) {
+	try{
+		run();
+	} catch (const std::exception& e){
+		std::cout << RED"Error: " << e.what() << RESET << std::endl;
+	}
+
 	return 0;
 }
 
-/* Todo:
-	✅1. In case of deletion of the Worker, the Shovel must not be destroyed
-		debo poner el Worker*	worker_assigned; a NULL
-	✅2. Each tool must have a number of uses and a use method that indicates what tool it is.
 
-	✅3. si delete herramienta, he de eliminarla del trabajador si esta asignada.
+
+/* Todo:
+	✅
 */
