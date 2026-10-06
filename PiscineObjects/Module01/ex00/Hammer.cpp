@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 13:04:25 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/06 11:10:51 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/06 19:00:34 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,11 +57,14 @@ void	Hammer::use(Worker* w) {
 	if (!w){
 		throw std::runtime_error("Worker have to be someone ");
 	}
-	//1. take hammer from worker if have it.
-	if (worker_assigned){ worker_assigned->removeTool(this); }
-	//2.Give the hammer to the new worker
-	worker_assigned = w;
-	w->addTool(this);
+	
+	if (worker_assigned != w) {
+		//1. take hammer from worker if have it.
+		if (worker_assigned){ worker_assigned->removeTool(this); }
+		//2.Give the hammer to the new worker
+		worker_assigned = w;
+		w->addTool(this);
+	}
 	//3.print and increase use.
 	numberOfUses++;
 	std::cout << CYAN"[🔨" << id << "] used by [👷" << w->getName() << "]. Num of uses: " << numberOfUses << RESET << std::endl;
