@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 14:11:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/01 14:58:30 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/06 17:50:58 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,6 +43,8 @@ public:
 		t.stream_insert(out);
 		return out;
 	}
+private:
+	friend struct Garbage;
 };
 
 

@@ -6,12 +6,13 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 11:57:06 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/03 18:05:05 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/06 17:20:51 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Worker.hpp"
 #include "Shovel.hpp"
+#include <algorithm>
 
 size_t Worker::id_counter = 0;
 
@@ -36,6 +37,12 @@ Worker& Worker::operator=(const Worker& other) {
 			if (tool)
 				tool->liberateTool();
 		}
+		while (!workshops.empty()) {
+			Workshop* ws = workshops.back();
+			workshops.pop_back();
+			if (ws)
+				ws->leave(*this);
+		}
 		//2.copy
 		coordonnee = other.coordonnee;
 		stat = other.stat;
@@ -51,6 +58,12 @@ Worker::~Worker(){
 		if (tool) {
 			tool->liberateTool();
 		}
+	}
+	while (!workshops.empty()) {
+		Workshop* ws = workshops.back();
+		workshops.pop_back();
+		if (ws)
+			ws->leave(*this);
 	}	
 	std::cout << RED"[👷" << id << "] destroyed." << RESET << std::endl;
 }
@@ -63,12 +76,17 @@ void	Worker::addTool(Tool* tool) {
 	if (!tool){
 		throw std::runtime_error("Worker cannot take a NULL tool");
 	}
-	tools.push_back(tool);
-	std::cout << CYAN"[👷" << id << "] takes ";
-	if (dynamic_cast<Shovel*>(tool)){
-		std::cout << "[🪏 " << tool->getid() << "]" << RESET << std::endl;
-	} else {
-		std::cout << "[🔨" << tool->getid() << "]" << RESET << std::endl;
+	
+	std::vector<Tool*>::iterator it;
+	it = std::find(tools.begin(), tools.end(), tool);
+	if (it == tools.end()) {
+		tools.push_back(tool);
+		std::cout << CYAN"[👷" << id << "] takes ";
+		if (dynamic_cast<Shovel*>(tool)){
+			std::cout << "[🪏 " << tool->getid() << "]" << RESET << std::endl;
+		} else {
+			std::cout << "[🔨" << tool->getid() << "]" << RESET << std::endl;
+		}
 	}
 }
 
@@ -93,7 +111,15 @@ void	Worker::removeTool(Tool* tool) {
 
 size_t	Worker::getName() const { return id; }
 
-void	Worker::work() const{}
+
+//private
+void	Worker::work() {
+	std::vector<Tool*>::const_iterator cit = tools.begin();
+	for (; cit != tools.end(); cit++) {
+		(*cit)->use(this);
+	}
+	
+}
 
 std::ostream& operator<<(std::ostream& out, const Worker& w) {
 	out << "worker" << w.id << ": " << BLUE "[coord]: " << w.coordonnee << MAGENTA" [stat]: " <<  w.stat << RESET;

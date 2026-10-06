@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 11:57:39 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/03 17:56:08 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/06 18:41:23 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,10 +28,47 @@ void	clearScreen() {
 void run(void) {
 	clearScreen();
 	Workshop* workshop0 = G.newWorkshop();
-	(void)workshop0;
+
+	std::cout << std::endl << "###### WORKERS and TOOLS CREATION ######" << std::endl;
+	Worker*	worker0 = G.newWorker();
+	Worker* worker1 = G.newWorker();
+	Tool* hammer0 = G.newHammer();
+	Tool* hammer1 = G.newHammer();
+	std::cout << *worker0 << std::endl;
+	std::cout << *hammer0 << std::endl;
+	std::cout << *hammer1 << std::endl;
+	
+	std::cout << std::endl << "###### REGISTERS OF WORKERS AT WORKSHOP ######" << std::endl;
+	workshop0->signIn(*worker0);
+	workshop0->signIn(*worker1);
+	
+	std::cout << std::endl << "###### WORKDAY WITHOUT TOOLS ######" << std::endl;
+	workshop0->executeWorkDay();
+	
+	std::cout << std::endl << "###### USE of TOOLS out of workshop workday ######" << std::endl;
+	hammer0->use(worker0);
+	hammer1->use(worker1);
+	std::cout << *worker0 << std::endl;
+	std::cout << *worker1 << std::endl;
+	std::cout << *hammer0 << std::endl;
+	std::cout << *hammer1 << std::endl;
+
+	std::cout << std::endl << "###### Now WORKDAY WITH TOOLS ######" << std::endl;
+	workshop0->executeWorkDay();
+	
+	std::cout << std::endl << "###### OTHER WORKER TAKES worker1 TOOL ######" << std::endl;
+	hammer1->use(worker0);
+	Tool* shovel0 = G.newShovel();
+	shovel0->use(worker1);
+	std::cout << *worker0 << std::endl;
+	std::cout << *worker1 << std::endl;
+	std::cout << *hammer0 << std::endl;
+	std::cout << *hammer1 << std::endl;
+	std::cout << *shovel0 << std::endl;
 
 	
-	std::cout << std::endl << "###### WORKERS and TOOLS CREATION ######" << std::endl;
+	
+	/* std::cout << std::endl << "###### WORKERS and TOOLS CREATION ######" << std::endl;
 	Worker*	worker0 = G.newWorker();
 	Tool* hammer0 = G.newHammer();
 	Tool* hammer1 = G.newHammer();
@@ -59,7 +96,7 @@ void run(void) {
 	std::cout << *worker0 << std::endl;
 	std::cout << *worker1 << std::endl;
 	std::cout << *hammer0 << std::endl;
-	std::cout << *hammer1 << std::endl;
+	std::cout << *hammer1 << std::endl; */
 }
 
 int	main(void) {

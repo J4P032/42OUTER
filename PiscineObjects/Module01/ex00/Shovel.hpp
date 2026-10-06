@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 13:59:03 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/01 14:16:04 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/06 18:10:12 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,6 +23,7 @@ private:
 	static size_t	id_counter;
 	size_t			numberOfUses;
 	Worker*			worker_assigned;
+	friend struct	Garbage;
 	
 
 public:

@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/02 13:17:23 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/06 11:10:28 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/06 18:24:46 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -114,26 +114,41 @@ Tool*		Garbage::newShovel(const Tool& other){
 	throw std::runtime_error("Cannot create a NULL Shovel*.");
 }
 
-void		Garbage::cleanAll(){
+/*En el destructor del Worker tengo while (!workshops.empty()) {
+si no le pongo el (*s_it)->workers.clear(); antes, entraria por que NO estaria 
+vacio y entraria al entrar en el delete del Worker, como no existe el puntero
+tendriamos un puntero colgante. Asi al vaciarlo aqui no entra en esa deferenciadion
+y salva un double free segun valgrind. Lo mismo con workers. Hay que vaciar 
+primero!!! 
+PERO TAMBIEN hay que liberar primero a las herramientas por que ellas tienen
+el puntero de los trabajadores a las que ha sido asignada. Asi su destructor
+hara una liberacion de ellas */
+void	Garbage::cleanAll(){
 	std::set<Workshop*>::iterator	s_it = workshops.begin();
 	std::set<Worker*>::iterator		w_it = workers.begin();
 	std::set<Tool*>::iterator		t_it = tools.begin();
 
+	for (; t_it != tools.end(); t_it++){
+		if (*t_it) {
+			delete *t_it;
+		}
+	}
+	
 	for (; s_it != workshops.end(); s_it++){
-		if (*s_it)
+		if (*s_it) {
+			(*s_it)->workers.clear();
 			delete *s_it;
+		}
 	}
 
 	for (; w_it != workers.end(); w_it++){
-		if (*w_it)
+		if (*w_it) {
+			(*w_it)->tools.clear();
+			(*w_it)->workshops.clear();
 			delete *w_it;
+		}
 	}
 
-	for (; t_it != tools.end(); t_it++){
-		if (*t_it)
-			delete *t_it;
-	}
-	
 	workshops.clear();
 	workers.clear();
 	tools.clear();

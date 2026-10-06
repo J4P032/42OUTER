@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 11:51:00 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/02 12:46:37 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/06 17:48:27 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,30 +16,35 @@
 # include "Position.hpp"
 # include "Statistic.hpp"
 # include "Tool.hpp"
+# include "Workshop.hpp"
 # include <iostream>
 # include <vector>
 
 class Shovel;
+class Workshop;
 
 class Worker {
 private:
-	Position			coordonnee;
-	Statistic			stat;
-	static size_t		id_counter;
-	size_t				id;
-	std::vector<Tool*>	tools;
+	Position				coordonnee;
+	Statistic				stat;
+	static size_t			id_counter;
+	size_t					id;
+	std::vector<Tool*>		tools;
+	std::vector<Workshop*> 	workshops;
+	void					work(void);
+	friend class			Workshop;
+	friend struct			Garbage;
 	
-public:
+	public:
 	Worker();
 	Worker(Position pos, Statistic stat);
 	Worker(const Worker& other);
 	Worker& operator=(const Worker& other);
 	~Worker();
-
+	
 	void	addTool(Tool* tool);
 	void	removeTool(Tool* tool);
 	size_t	getName() const;
-	void	work() const;
 
 	friend	std::ostream& operator<<(std::ostream& out, const Worker& w);
 };
