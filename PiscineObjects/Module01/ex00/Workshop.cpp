@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/30 18:15:46 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/02 13:42:03 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/06 11:40:36 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,9 +30,10 @@ Workshop& Workshop::operator=(const Workshop& other){
 	return (*this);
 }
 
+void	Workshop::signIn(Worker& worker) {
+	workers.insert(&worker);
+}
 
-
-
-void	Workshop::signIn(const Worker& worker) {(void)worker;}
-
-void	Workshop::leave(const Worker& worker) {(void)worker;}
+void	Workshop::leave(Worker& worker) {
+	workers.erase(&worker);
+}
