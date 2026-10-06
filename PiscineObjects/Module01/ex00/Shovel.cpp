@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 14:34:56 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/03 18:07:32 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/06 19:02:56 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,11 +57,13 @@ void	Shovel::use(Worker* w) {
 		throw std::runtime_error("Worker have to be someone ");
 	}
 	
-	//1.Revove tool from previous worker
-	if (worker_assigned){ worker_assigned->removeTool(this); }
-	//2.Give the shovel to the new worker
-	worker_assigned = w;
-	w->addTool(this);
+	if (worker_assigned != w) {
+		//1.Revove tool from previous worker
+		if (worker_assigned){ worker_assigned->removeTool(this); }
+		//2.Give the shovel to the new worker
+		worker_assigned = w;
+		w->addTool(this);
+	}
 	//3.print and increase use.
 	numberOfUses++;
 	std::cout << CYAN"[🪏 " << id << "] used by [👷" << w->getName() << "]. Num of uses: " << numberOfUses << RESET << std::endl;
