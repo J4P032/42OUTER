@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/02 13:17:23 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/06 18:24:46 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/08 11:33:14 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -113,6 +113,22 @@ Tool*		Garbage::newShovel(const Tool& other){
 	}
 	throw std::runtime_error("Cannot create a NULL Shovel*.");
 }
+
+void	Garbage::delete_object(Workshop* obj) {
+	if (workshops.erase(obj))
+		delete obj;
+}
+
+void	Garbage::delete_object(Worker* obj) {
+	if (workers.erase(obj))
+		delete obj;
+}
+
+void	Garbage::delete_object(Tool* obj) {
+	if (tools.erase(obj))
+		delete obj;
+}
+
 
 /*En el destructor del Worker tengo while (!workshops.empty()) {
 si no le pongo el (*s_it)->workers.clear(); antes, entraria por que NO estaria 

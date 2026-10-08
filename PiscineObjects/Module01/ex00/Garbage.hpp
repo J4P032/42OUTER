@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/02 13:00:01 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/06 11:10:18 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/08 11:33:50 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,11 @@ struct Garbage{
 	Tool*		newHammer(const Tool& other);
 	Tool*		newShovel();
 	Tool*		newShovel(const Tool& other);
-	
+
+	void		delete_object(Workshop* obj);
+	void		delete_object(Worker* obj);
+	void		delete_object(Tool* obj);
+		
 	void		cleanAll();
 };
 
