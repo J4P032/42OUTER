@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/29 14:11:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/06 17:50:58 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/08 15:00:29 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,14 @@ public:
 	Tool(){}
 	virtual ~Tool(){}
 
+	/*esto esta mal (el use publico), por que se produce una dependencia 
+	circular. La herramienta puede elegir a quien asignarse. Para arreglarlo
+	habría que hacer el método privado y hacer Worker friend de Tool para que 
+	esta sí que pueda acceder al método. Es un tema de architectura. Tal y como 
+	está funciona, pero sería un poco "mágica" la herramienta por que permite
+	ser elegida. Pero el anillo único también elegía a sus huéspedes.*/
 	virtual void use(Worker* w) = 0;
+	
 	virtual void liberateTool(void) = 0;
 	virtual void stream_insert(std::ostream& out) const = 0;
 	virtual size_t getid() const = 0;
