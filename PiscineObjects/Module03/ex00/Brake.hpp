@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 12:26:10 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/14 13:40:16 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/14 15:27:59 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,13 +30,6 @@ public:
 			force = 100;
 		_brake = force;
 	}
-
-	void apply_emergency_brakes() {
-		if (_brake == 100)
-			return;
-		_brake = 100;
-	}
-	
 };
 
 

@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/13 11:18:34 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/14 15:08:57 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/14 15:38:51 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,57 +18,55 @@
 # include "Engine.hpp"
 # include "Brake.hpp"
 # include "Gears.hpp"
+# include "Direction.hpp"
 
 class Car {
 
 private:
 	int		_speed;
-	int		_angle;
 	size_t	_id;
 
 	//composicion
-	Engine	_engine;
-	Brake	_brake;
-	Gears	_gear;
-
+	Engine		_engine;
+	Brake		_brake;
+	Gears		_gear;
+	Direction	_direction;
 	
 
 public:
 	Car() : 
 		_speed(0),
-		_angle(0),
 		_id(0){
 		std::cout << GREEN "🚘" << _id << " is created." << RESET <<  std::endl;	
 	}
 
 	Car(size_t id) : 
 		_speed(0),
-		_angle(0),
 		_id(id){
 		std::cout << GREEN "🚘" << _id << " is created." << RESET <<  std::endl;	
 	}
 
 	Car(const Car& other) :
 		_speed(other._speed),
-		_angle(other._angle),
 		_id(other._id),
 		_engine(other._engine),
 		_brake(other._brake),
-		_gear(other._gear) {
+		_gear(other._gear), 
+		_direction(other._direction) {
 		std::cout << GREEN "🚘" << _id << " is created from " << "🚘" << other._id << RESET <<  std::endl;	
 	}
 	
 	Car& operator=(const Car& other){
 		_speed = other._speed;
-		_angle = other._angle;
 		_engine = other._engine;
 		_brake = other._brake;
 		_gear = other._gear;
+		_direction = other._direction;
 		_id = other._id;
 		return *this;
 	}
 
-	~Car(){
+	~Car() {
 		std::cout << RED "🚘" << _id << " destroyed." << RESET <<  std::endl;	
 	}
 
@@ -101,7 +99,7 @@ public:
 		if (!_engine._started)
 			return ;
 		_engine.stop();
-		_brake.apply_emergency_brakes();
+		apply_emergency_brakes();
 		_speed = 0;
 		std::cout << YELLOW "🚘" << _id << " stops engine." << RESET <<  std::endl;
 	}
@@ -113,7 +111,7 @@ public:
 	}
 
 	void apply_emergency_brakes() {
-		_brake.apply_emergency_brakes();
+		_brake.apply_force_on_brakes(100);
 		accelerate(0);
 		std::cout << YELLOW "🚘" << _id << " applies emergency brakes" << RESET <<  std::endl;
 	}
@@ -148,18 +146,12 @@ public:
 	}
 
 	void turn_wheel(int angle) {
-		if (angle >= 180)
-			angle = 180;
-		if (angle <= -180)
-			angle = -180;
-		_angle = angle;
-		std::cout << CYAN "🚘 " << _id << " turns wheel to " << _angle << "°" << RESET <<  std::endl;
+		_direction.turn_wheel(angle);
+		std::cout << CYAN "🚘 " << _id << " turns wheel to " << _direction.get_angle() << "°" << RESET <<  std::endl;
 	}
 
 	void straighten_wheel() {
-		if (_angle == 0)
-			return;
-		_angle = 0;
+		_direction.turn_wheel(0);
 		std::cout << CYAN "🚘 " << _id << " straight the wheel." << RESET <<  std::endl;
 	}
 
@@ -173,7 +165,7 @@ public:
 		out << "Speed: " << RESET << c._speed << std::endl;
 		out << BLUE "gear: " << RESET << c._gear.get_gear() << std::endl;
 		out << BLUE "reverse: " << RESET << std::boolalpha << c._gear.get_reverse() << std::noboolalpha << std::endl;
-		out << BLUE "angle: " << RESET << c._angle << std::endl;
+		out << BLUE "angle: " << RESET << c._direction.get_angle() << std::endl;
 		out << BLUE "brake: " << RESET << c._brake.get_brake() << "%" << std::endl;
 		out << "--------------------------"; 
 	
