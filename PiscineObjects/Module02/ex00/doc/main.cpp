@@ -6,8 +6,9 @@ int main() {
 
     // FORMA CORRECTA (Acceder al Singleton):
     GearLever& palanca = GearLever::getInstance();
-    
-    palanca.change(); // Usar sus métodos normalmente
+    GearLever& palanca2 = GearLever::getInstance();
+
+    //palanca.change(); // Usar sus métodos normalmente
     
     return 0;
 }

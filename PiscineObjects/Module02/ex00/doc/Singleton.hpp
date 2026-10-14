@@ -1,11 +1,12 @@
 #ifndef SINGLETON_HPP
 #define SINGLETON_HPP
+#include <iostream>
 
 template <typename T>
 class Singleton {
 protected:
     // Constructor protegido para que solo las clases hijas (como GearLever) puedan usarlo
-    Singleton() {}
+    Singleton() {std::cout << "singleton" << std::endl;}
     virtual ~Singleton() {}
 
 private:

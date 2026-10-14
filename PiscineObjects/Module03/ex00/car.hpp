@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/13 11:18:34 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/13 17:52:11 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/14 10:56:16 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -172,8 +172,8 @@ public:
 		if (force > 100)
 			force = 100;
 		_brake = force;
+		accelerate(0);
 		std::cout << YELLOW "🚘" << _id << " applies " << _brake << "% brakes" << RESET <<  std::endl;
-	
 	}
 
 	void shift_gears_up() { 
@@ -188,17 +188,13 @@ public:
 		
 	}
 
-
-	
-
-
 	void accelerate(int speed) { 
 		if (!_started) {
 			std::cout << RED "⚠️ 🚘" << "_id" << " don't have engines running!" << RESET << std::endl; 
 			return ;
 		}
 		if (_brake > 0) {
-			std::cout << RED "⚠️ 🚘" << "_id" << " has " << _brake << "% applied!" << RESET << std::endl; 
+			std::cout << RED "⚠️ 🚘" << "_id" << " has " << _brake << "% of brakes applied!" << RESET << std::endl; 
 			return ;
 		}
 		accelerate_to_speed(speed);

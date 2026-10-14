@@ -2,7 +2,8 @@
 #define GEARLEVER_HPP
 
 #include "Singleton.hpp"
-#include "Gear.hpp"
+#include <iostream>
+//#include "Gear.hpp"
 
 // Hereda de Singleton pasándose a sí misma como tipo <T>
 class GearLever : public Singleton<GearLever> {
@@ -10,16 +11,16 @@ class GearLever : public Singleton<GearLever> {
     friend class Singleton<GearLever>;
 
 private:
-    Gear    _gears[6]; //Composición
+    //Gear    _gears[6]; //Composición
     int     _level;
 
     // El constructor es privado para que NADIE pueda hacer "GearLever lever;" en el main
-    GearLever() : _level(0) {} 
+    GearLever() : _level(0) {std::cout << "hola" << std::endl;} 
     ~GearLever() {}
 
 public:
     void change();
-    Gear* activeGear();
+   // Gear* activeGear();
 };
 
 #endif
