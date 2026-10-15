@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 16:24:40 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/14 18:26:00 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/15 10:22:51 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -43,7 +43,15 @@ public:
 
 	//GETTERS
 	
-	float	get_total_price() const{
+	
+
+	//METHODS
+
+	void add(std::string article, float price, int quantity) {
+		articles[article] = std::make_pair(price, quantity);
+	} 
+
+	virtual float	get_total_price() const{
 		if (articles.empty())
 			return 0;
 		float total;
@@ -51,15 +59,8 @@ public:
 		for (; it != articles.end(); it++) {
 			total += it->second.first * it->second.second;
 		} 
-		total -= discount(total);
 		return (total);
 	}
-
-	//METHODS
-
-	void add(std::string article, float price, int quantity) {
-		articles[article] = std::make_pair(price, quantity);
-	} 
 
 
 	virtual float discount(float price) const { 

@@ -6,25 +6,22 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 16:24:36 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/14 18:15:14 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/15 11:25:40 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "command.hpp"
 #include "thuesdayDiscount.hpp"
+#include "packageReductionDiscount.hpp"
 
 void run() {
-	Command c0;
-	ThuesdayDiscount c1("manolo", "hoy");
-	c1.add("patatas", 50.0f, 1);
-	c1.add("tomates", 50.0f, 1);
+	Command c0("manolo", "hoy");
+	c0.add("patatas", 50.0f, 1);
+	c0.add("tomates", 101.0f, 1);
+	PackageReductionDiscountCommand c1(c0);
+	ThuesdayDiscountCommand c2(c1);
 	std::cout << c0 << std::endl;
-	std::cout << c1 << std::endl;
-	std::cout << "precio total: " << c1.get_total_price() << std::endl;
-
+	std::cout << "precio total: " << c2.get_total_price() << std::endl;
 }
-
-
 
 int main() {
 	try {

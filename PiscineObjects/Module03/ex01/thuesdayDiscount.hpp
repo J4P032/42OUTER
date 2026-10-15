@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 16:24:46 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/14 18:26:26 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/15 11:24:50 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,16 +15,21 @@
 
 # include "command.hpp"
 
+class ThuesdayDiscountCommand : public Command {
+	private:
+		const Command&	command;
 
-class ThuesdayDiscount : public Command {
-public:
-	ThuesdayDiscount(std::string name, std::string d) {
-		client = name;
-		date = d;
+	public:
+	ThuesdayDiscountCommand(const Command& c) : command(c) {}
+
+	float	get_total_price() const{
+		float total = command.get_total_price();
+		total -= discount(total);
+		return total;
 	}
 
 	float discount(float price) const { 
-		return ( price / 10.0f );		
+		return ( price / 10.0f );	
 	}
 };
 
