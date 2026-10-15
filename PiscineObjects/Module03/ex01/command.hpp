@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/14 16:24:40 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/15 10:22:51 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/15 11:38:29 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,9 @@
 
 static size_t counter = 0;
 
+
+/*Este ejemplo incorpora el patrón de diseño decorator:
+https://refactoring.guru/es/design-patterns/decorator */
 class Command {
 protected:
 	size_t											id;
