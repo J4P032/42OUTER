@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:19:40 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/16 11:38:41 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/16 15:06:46 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,13 +21,32 @@ private:
 	std::set<Employee*>	employees;
 	
 public:
-	void addEmployee(Employee* e){}
+	void addEmployee(Employee* e){
+		if (!e)
+			return;
+		employees.insert(e);
+	}
 	
-	void removeEmployee(Employee* e){}
+	void removeEmployee(Employee* e){
+		if (!e)
+			return;
+		employees.erase(e);
+	}
 
-	void executeWorkday() const {}
+	void executeWorkday() const {
+		std::set<Employee*>::const_iterator cit = employees.begin();
+		for (;cit != employees.end(); cit++){
+			(*cit)->executeWorkday();
+		}
+	}
 
-	void calculatePayroll() const {}
+	void calculatePayroll() const {
+		std::set<Employee*>::const_iterator cit = employees.begin();
+		for (;cit != employees.end(); cit++){
+			(*cit)->();
+		}
+		
+	}
 };
 
 #endif

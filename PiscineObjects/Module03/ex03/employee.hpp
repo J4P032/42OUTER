@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:21:17 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/15 16:52:11 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/16 15:18:04 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,13 +16,16 @@
 class Employee {
 protected:
 	int	hourlyValue;
+	int totalHoursWorked;
 
 public:
-	Employee(){}
+	Employee() : hourlyValue(50), totalHoursWorked(0) {}
 
 	virtual ~Employee(){}
 	
 	virtual int executeWorkday() = 0;
+
+	virtual int	calculatePayroll() = 0;
 };
 
 #endif
