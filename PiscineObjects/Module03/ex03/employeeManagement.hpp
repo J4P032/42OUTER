@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/10/15 16:19:40 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/15 16:29:33 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/16 11:38:41 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 
 class EmployeeManager {
 private:
-	std::set<Employee>	employees;
+	std::set<Employee*>	employees;
 	
 public:
 	void addEmployee(Employee* e){}
