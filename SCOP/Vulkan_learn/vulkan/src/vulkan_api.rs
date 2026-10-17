@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/09/25 13:11:52 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/17 11:10:40 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -170,8 +170,7 @@ Es la pieza que hace que el render sea seguro, estable y visible.
 
 impl VulkanApi{
 	fn compute_wait_value(signal_value: u64) -> u64 {
-		let previous_frame_offset = (MAX_FRAMES_IN_FLIGHT as u64).saturating_sub(1);
-		signal_value.saturating_sub(previous_frame_offset)
+		signal_value.saturating_sub(MAX_FRAMES_IN_FLIGHT as u64)
 	}
 
 	pub fn new() -> Self{
@@ -1003,7 +1002,11 @@ impl VulkanApi {
 			p_values: &wait_value,
 			..Default::default()	
 		};
-		let Ok(wait_semaphores) = ( unsafe {device.wait_semaphores(&wait_info, u64::MAX)}) else { return;};
+        //fix bug no render triangulo pantalla en negro.
+        //antes estaba sin esta condicion. Siempre ejecutaba la espera.
+		if wait_value > 0 {
+			let Ok(()) = (unsafe {device.wait_semaphores(&wait_info, u64::MAX)}) else { return; };
+		}
 		
 		// now its safe to start recording commands
 		let res = &mut self.frame_resources[frame_res_index as usize];
@@ -1044,11 +1047,11 @@ impl VulkanApi {
 		let Some(depth_image) = &self.depth_image else { return; };
 		let layout_barriers = vec![
 			ash::vk::ImageMemoryBarrier2{
-				src_stage_mask: ash::vk::PipelineStageFlags2::COLOR_ATTACHMENT_OUTPUT,
+				src_stage_mask: ash::vk::PipelineStageFlags2::NONE,
 				src_access_mask: ash::vk::AccessFlags2::empty(),
 				dst_stage_mask: ash::vk::PipelineStageFlags2::COLOR_ATTACHMENT_OUTPUT,
 				dst_access_mask: ash::vk::AccessFlags2::COLOR_ATTACHMENT_WRITE,
-				old_layout: ash::vk::ImageLayout::UNDEFINED,
+				old_layout: ash::vk::ImageLayout::PRESENT_SRC_KHR,
 				new_layout: ash::vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL,
 				image: self.swapchain_images[idx as usize],
 				subresource_range: ash::vk::ImageSubresourceRange{
@@ -1114,6 +1117,7 @@ impl VulkanApi {
 					stencil: 0
 				}
 			});
+		let color_attachments = [color_attach_info];
 
 		let rendering_info = ash::vk::RenderingInfo {
 			render_area: ash::vk::Rect2D {
@@ -1128,7 +1132,7 @@ impl VulkanApi {
 			},
 			layer_count: 1,
 			color_attachment_count: 1,
-			p_color_attachments: [color_attach_info].as_ptr(),
+			p_color_attachments: color_attachments.as_ptr(),
 			p_depth_attachment: &depth_attach_info as *const _,
 			..Default::default()
 		};
@@ -1154,7 +1158,7 @@ impl VulkanApi {
 				width: self.swapchain_width,
 				height: self.swapchain_height
 			}
-		}; 
+		};
 		unsafe { device.cmd_set_scissor(*command_buffer, 0, &[scissor])}
 	
 		//draw our triangle
