@@ -858,7 +858,13 @@ impl VulkanApi {
 			..Default::default()	
 		};
 
-		pipeline_info.push_next(&mut render_info);
+		/* ash's push_next(mut self, next) -> Self takes self BY VALUE and returns a new
+			owned struct with p_next chained. Because ash Vulkan structs are Copy, calling
+			it as a bare statement (`pipeline_info.push_next(...);`) chains p_next into a
+			COPY that is then thrown away, leaving the original p_next = null. The result
+			MUST be reassigned or the pipeline is created without PipelineRenderingCreateInfo
+			(color/depth formats = VK_FORMAT_UNDEFINED) -> black screen on strict drivers. */
+		pipeline_info = pipeline_info.push_next(&mut render_info);
 
 		let Ok(pipes) = (unsafe {device.create_graphics_pipelines(ash::vk::PipelineCache::null(), &[pipeline_info], None)}) else {
 			self.show_error("Error creating the pipeline");
@@ -884,8 +890,12 @@ impl VulkanApi {
 			.semaphore_type(ash::vk::SemaphoreType::TIMELINE)
 			.initial_value(0);
 		
-		let semaphore_info = ash::vk::SemaphoreCreateInfo::default();
-		semaphore_info.push_next(&mut semaphore_type_info);
+		/* SAME push_next footgun as the pipeline above: the result must be reassigned.
+			If discarded, semaphore_type_info is never chained, so this "timeline" semaphore
+			is actually created as a BINARY one. Then wait_semaphores(value) on it is invalid
+			usage -> broken frame pacing / black screen on strict drivers (RADV). */
+		let semaphore_info = ash::vk::SemaphoreCreateInfo::default()
+			.push_next(&mut semaphore_type_info);
 
 		let Ok(semaphore) = (unsafe {device.create_semaphore(&semaphore_info, None)}) else {
 			self.show_error("Unable to create the timeline semaphore");
@@ -1046,12 +1056,16 @@ impl VulkanApi {
 		// transition the color and depth images
 		let Some(depth_image) = &self.depth_image else { return; };
 		let layout_barriers = vec![
+			/* OLD_LAYOUT: on the FIRST frame each swapchain image is in UNDEFINED layout,
+				not PRESENT_SRC_KHR. Since we CLEAR the color attachment every frame,
+				discarding old contents is always legal, so UNDEFINED is correct for
+				both the first and every subsequent frame (no contents are reused). */
 			ash::vk::ImageMemoryBarrier2{
 				src_stage_mask: ash::vk::PipelineStageFlags2::NONE,
 				src_access_mask: ash::vk::AccessFlags2::empty(),
 				dst_stage_mask: ash::vk::PipelineStageFlags2::COLOR_ATTACHMENT_OUTPUT,
 				dst_access_mask: ash::vk::AccessFlags2::COLOR_ATTACHMENT_WRITE,
-				old_layout: ash::vk::ImageLayout::PRESENT_SRC_KHR,
+				old_layout: ash::vk::ImageLayout::UNDEFINED,
 				new_layout: ash::vk::ImageLayout::COLOR_ATTACHMENT_OPTIMAL,
 				image: self.swapchain_images[idx as usize],
 				subresource_range: ash::vk::ImageSubresourceRange{
