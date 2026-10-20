@@ -30,6 +30,7 @@ fn main() {
     if vulkan_api.initialize() {
         vulkan_api.run();
     }
+    vulkan_api.shutdown();
 
 
 }

@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/17 11:10:40 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/20 15:12:39 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -228,7 +228,7 @@ impl VulkanApi {
 	pub fn initialize(&mut self) -> bool {
 		if let Ok(sdl_init) = sdl2::init() {
 			if let Ok(video_subsystem) = sdl_init.video() {
-				match video_subsystem.window("Scop", self.width, self.height).position_centered().vulkan().build() {
+				match video_subsystem.window("Scop Rust", self.width, self.height).position_centered().vulkan().resizable().build() {
 					Ok(sdl_window) => { 
 						self.window = Some(sdl_window);
 					}
@@ -1289,12 +1289,74 @@ impl VulkanApi {
 			&self.depth_image,)
 		{		
 			unsafe { device.destroy_image_view(*div, None);};
-			unsafe { vmaa.destroy_image(*di, dia)}
+			unsafe { vmaa.destroy_image(*di, dia)};
 			self.depth_image_view = None;
 			self.depth_image = None;
 		}
 	}
+}
 
+impl VulkanApi {
+	pub fn shutdown(&mut self) {
+		if let Some(device) = &self.device {
+			// wait in case resources are in use
+			if let Err(e) = unsafe { device.device_wait_idle() } {
+				eprintln!("Error waiting device in shutdown: {:?}", e);
+			}
 
+			// frame / sync object cleanup
+			if let Some(timeline_semaphore) = self.timeline_semaphore {
+				unsafe { device.destroy_semaphore(timeline_semaphore, None)};	
+			}
+			for res in &self.frame_resources {
+				if let Some(image_adquired_semaphore) = res.image_adquired_semaphore {
+					unsafe { device.destroy_semaphore(image_adquired_semaphore, None) };
+				}
+				if let Some(command_pool) = res.command_pool {
+					unsafe { device.destroy_command_pool(command_pool, None) };
+				}
+			}
 
+			// pipeline cleanup
+			if let Some(pipeline_layout) = self.pipeline_layout {
+				unsafe { device.destroy_pipeline_layout(pipeline_layout, None)};
+			}
+			if let Some(pipeline) = self.pipeline {
+				unsafe { device.destroy_pipeline(pipeline, None)};
+			}
+
+			// cleanup shaders
+			if let Some(vert_shader) = self.vert_shader {
+				unsafe { device.destroy_shader_module(vert_shader, None)};
+			}
+			if let Some(frag_shader) = self.frag_shader {
+				unsafe { device.destroy_shader_module(frag_shader, None)};
+			}
+		}
+			
+		// cleanup swapchain
+		self.destroy_swapchain();
+
+		if let Some(allocator) = self.vma_allocator.take() { 
+			//using take it drops vma_allocator Option out of this scope
+			//it doesn't exist vmaDestroyAllocator(vmaAllocator);
+		}
+
+		// cleanup Vulkan
+		if let Some(device) = &self.device {
+			unsafe { device.destroy_device(None) };
+		}
+		if let (Some(loader), Some(surface)) = (&self.surface_loader, self.surface) {
+			unsafe { loader.destroy_surface(surface, None) };
+		}
+		
+		//vulkan_instance:			Option<ash::Instance>,
+		if let Some(vulkan_instance) = &self.vulkan_instance {
+			unsafe {vulkan_instance.destroy_instance(None)};
+		}
+
+		// cleanup SDL
+		if let Some(_window) = self.window.take() {}
+		if let Some(_event_pump) = self.event_pump.take() {}
+	}
 }
