@@ -10,6 +10,9 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+
+//buscar "add 2 scop" para cambiar a scop del tutorial
+
 #include "vulkan_init.hpp"
 #include "utils.hpp"
 
@@ -963,6 +966,13 @@ VkPipeline VulkanInit::createGraphicsPipeline()
 		"En el canal 0 hay datos de tipo VK_FORMAT_R32G32B32_SFLOAT (es decir, 3 floats de 32 bits, tu X, Y, Z) y empiezan en el byte 0" "
 		Con esto, la tubería queda programada para saber que cuando le envíes el buffer del OBJ, debe trocear los bytes de 3 en 3 floats para alimentar al Vertex Shader.
 		*/
+
+	//Add 2 Scop
+	VkVertexInputBindingDescription miBindingDescription{};
+	miBindingDescription.binding = 0;
+	miBindingDescription.stride = sizeof(Vect3);
+	miBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
 	VkPipelineVertexInputStateCreateInfo vertInputInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
