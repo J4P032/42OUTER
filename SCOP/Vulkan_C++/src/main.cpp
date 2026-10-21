@@ -6,12 +6,13 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 13:18:17 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/18 16:40:41 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/21 15:04:53 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Obj.hpp"
 #include "parser.hpp"
+#include "vulkan_init.hpp"
 #include <iostream>
 #include <cstring>
 #include <stdexcept>
@@ -38,8 +39,12 @@ void	scop(int ac, char** av){
 	if (ac != 2)
 		throw std::runtime_error("Error: Not enough parameters. Use: spot file.obj\n");
 	process_file(av[1]);
-	
-	
+
+	VulkanInit scop;
+	if (scop.initialize()) {
+		scop.run();
+	}
+	scop.shutdown();
 	
 		
 }

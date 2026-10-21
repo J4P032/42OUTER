@@ -1,6 +1,6 @@
 NAME        = vulkantuto
 CC          = c++
-CFLAGS      = -Wall -Wextra -Werror -std=c++17
+CFLAGS      = -Wall -Wextra -Werror -std=c++17 -g
 
 # Flags para silenciar advertencias del SDK externo
 CFLAGS      += -Wno-nullability-completeness -Wno-unused-parameter -Wno-missing-field-initializers -Wno-missing-braces

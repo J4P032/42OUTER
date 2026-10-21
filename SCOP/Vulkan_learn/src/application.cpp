@@ -46,11 +46,15 @@ bool Application::initialize()
 			SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE );
 	#else
 			//dice a SDL -> quiero activar el subsistema de video
-			SDL_InitSubSystem(SDL_INIT_VIDEO);
-			//SDL_WINDOW_VULKAN = la ventana sera usada con vulkan
-			window = SDL_CreateWindow("Vulkan SDL3", width, height, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE); 
+			if (!SDL_InitSubSystem(SDL_INIT_VIDEO)){
+				std::cerr << "SDL_InitSubsystem failed: " << SDL_GetError() << std::endl;
+				return false;
+			}
+
 	#endif
-	
+			
+	//SDL_WINDOW_VULKAN = la ventana sera usada con vulkan
+	window = SDL_CreateWindow("Vulkan SDL3", width, height, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE); 
 	if (!window)
 	{
 		showError("Error creating window");
@@ -59,6 +63,7 @@ bool Application::initialize()
 
 	if (!initializeVulkan())
 	{
+		shutdown();
 		return false;
 	}
 
@@ -68,35 +73,38 @@ bool Application::initialize()
 void Application::shutdown()
 {
 	// wait in case resources are in use
-	vkDeviceWaitIdle(device);
+	if (device)
+		vkDeviceWaitIdle(device);
 
 	// frame / sync object cleanup
-	if (timelineSemaphore)
+	if (timelineSemaphore && device)
 	{
 		vkDestroySemaphore(device, timelineSemaphore, nullptr);
 	}
 	for (auto &res : frameResources)
 	{
-		vkDestroySemaphore(device, res.imageAcquiredSemaphore, nullptr);
-		vkDestroyCommandPool(device, res.commandPool, nullptr); // destroys buffers implicitly
+		if (device) {
+			vkDestroySemaphore(device, res.imageAcquiredSemaphore, nullptr);
+			vkDestroyCommandPool(device, res.commandPool, nullptr); // destroys buffers implicitly
+		}
 	}
 
 	// pipeline cleanup
-	if (pipelineLayout)
+	if (pipelineLayout && device)
 	{
 		vkDestroyPipelineLayout(device, pipelineLayout, nullptr);
 	}
-	if (pipeline)
+	if (pipeline && device)
 	{
 		vkDestroyPipeline(device, pipeline, nullptr);
 	}
 
 	// cleanup shaders
-	if (vertShader)
+	if (vertShader && device)
 	{
 		vkDestroyShaderModule(device, vertShader, nullptr);
 	}
-	if (fragShader)
+	if (fragShader && device)
 	{
 		vkDestroyShaderModule(device, fragShader, nullptr);
 	}
@@ -111,7 +119,7 @@ void Application::shutdown()
 	}
 
 	// cleanup Vulkan
-	if (surface)
+	if (surface && vulkanInstance)
 	{
 		vkDestroySurfaceKHR(vulkanInstance, surface, nullptr);
 	}
