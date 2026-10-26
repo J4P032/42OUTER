@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 13:18:17 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/26 11:31:31 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/26 17:26:11 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -30,8 +30,8 @@ Obj	process_file(char* str){
 		store_obj_data(line, obj3D);
 	}
 	
-	return obj3D;
 	//std::cout << obj3D << std::endl; //for testing good data.
+	return obj3D;
 }
 
 void	scop(int ac, char** av){
@@ -44,8 +44,6 @@ void	scop(int ac, char** av){
 		scop.run();
 	}
 	scop.shutdown();
-	
-		
 }
 
 int	main(int ac, char** av){

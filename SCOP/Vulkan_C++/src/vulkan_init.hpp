@@ -52,23 +52,27 @@ class VulkanInit
 	SDL_Window* window = nullptr;
 	uint32_t width = 1280;
 	uint32_t height = 720;
+	uint32_t vertexCount = 0;
 	bool running = false;
     uint64_t frameIndex = 0;
     uint64_t nextSignalValue = MaxFramesInFlight + 1;
 
 	// vulkan core
-	VkInstance vulkanInstance = nullptr;
-	VkPhysicalDevice physicalDevice = nullptr;
-	VkDevice device = nullptr;
-	VkSurfaceKHR surface = nullptr;
-	VmaAllocator vmaAllocator = nullptr;
+	VkInstance 			vulkanInstance = VK_NULL_HANDLE;
+	VkPhysicalDevice	physicalDevice = VK_NULL_HANDLE;
+	VkDevice 			device = VK_NULL_HANDLE;
+	VkSurfaceKHR 		surface = VK_NULL_HANDLE;
+	VmaAllocator 		vmaAllocator = VK_NULL_HANDLE;
+	VkBuffer			vertexBuffer = VK_NULL_HANDLE;
+	VmaAllocation		vertexAllocation = VK_NULL_HANDLE;
+
 
 	// queue related
 	uint32_t gfxQueueFamIdx = UINT32_MAX;
-	VkQueue gfxQueue = nullptr;
+	VkQueue gfxQueue = VK_NULL_HANDLE;
 
 	// swapchain related
-	VkSwapchainKHR swapchain = nullptr;
+	VkSwapchainKHR swapchain = VK_NULL_HANDLE;
 	std::vector<VkImage> swapchainImages;
 	std::vector<VkImageView> swapchainImageViews;
 	std::vector<VkSemaphore> renderCompleteSemaphores;
@@ -76,20 +80,20 @@ class VulkanInit
 	uint32_t swapchainWidth = 0;
 	uint32_t swapchainHeight = 0;
 
-	VkImage depthImage = nullptr;
-	VkImageView depthImageView = nullptr;
-	VmaAllocation depthImageAllocation = nullptr;
+	VkImage depthImage = VK_NULL_HANDLE;
+	VkImageView depthImageView = VK_NULL_HANDLE;
+	VmaAllocation depthImageAllocation = VK_NULL_HANDLE;
 
 	// graphics pipeline related
-	VkPipelineLayout pipelineLayout = nullptr;
-	VkPipeline pipeline = nullptr;
+	VkPipelineLayout pipelineLayout = VK_NULL_HANDLE;
+	VkPipeline pipeline = VK_NULL_HANDLE;
 
 	// shader resources
-	VkShaderModule vertShader = nullptr;
-	VkShaderModule fragShader = nullptr;
+	VkShaderModule vertShader = VK_NULL_HANDLE;
+	VkShaderModule fragShader = VK_NULL_HANDLE;
 
 	// frame and synchronization resources
-	VkSemaphore timelineSemaphore = nullptr;
+	VkSemaphore timelineSemaphore = VK_NULL_HANDLE;
 	std::array<FrameResources, MaxFramesInFlight> frameResources;
 
 	void showError(const std::string &errorMessasge) const;

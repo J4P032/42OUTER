@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 12:39:52 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/18 11:14:24 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/26 17:21:29 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -82,15 +82,11 @@ Vect3&	Vect3::operator/=(float num){
 	return (*this);
 }
 
-//ostream mejor con el Interface Dejo la antigua para ver como se hacía
-/* std::ostream&	operator<<(std::ostream &out, const Vect3 &v3){
+std::ostream&	operator<<(std::ostream &out, const Vect3 &v3){
 	out << std::showpoint;
 	out << "x: " << v3._x << ", y: " << v3._y << ", z: " << v3._z;
 	return (out);
-} */
-void    Vect3::stream_insert(std::ostream &out) const{
-    out << std::showpoint;
-	out << "x: " << _x << ", y: " << _y << ", z: " << _z;
 }
+
 
 

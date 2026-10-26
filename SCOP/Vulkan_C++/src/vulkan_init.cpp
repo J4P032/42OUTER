@@ -127,11 +127,19 @@ void VulkanInit::shutdown()
 	// cleanup swapchain
 	destroySwapchain();
 
-	// VMA
-	if (vmaAllocator)
+	// VMA ***
+	if (vertexBuffer && vertexAllocation && vmaAllocator)
 	{
-		vmaDestroyAllocator(vmaAllocator);
+    	vmaDestroyBuffer(vmaAllocator, vertexBuffer, vertexAllocation);
+    	vertexBuffer = VK_NULL_HANDLE;
+    	vertexAllocation = VK_NULL_HANDLE;
 	}
+
+	if (vmaAllocator){
+		vmaDestroyAllocator(vmaAllocator);
+		vmaAllocator = VK_NULL_HANDLE;
+	}
+	// ***
 
 	// cleanup Vulkan
 	if (surface && vulkanInstance)
@@ -255,11 +263,6 @@ bool VulkanInit::initializeVulkan(Obj& obj3D)
 		showError("Unable to create Vertex Buffer");
 		return false;
 	}
-		
-		
-		
-
-
 	// ***
 
 	//Configurará y creará el swapchain(formato de color y num de imagenes a volcar) de Vulkan más los
@@ -676,28 +679,56 @@ bool VulkanInit::initializeVMA()
 bool VulkanInit::createVertexBuffer(Obj& obj3D) {
 	const VMAP&		points = obj3D.get_points();
 	const VINDEX&	indexes = obj3D.get_polygon_indexes();
-	VkBuffer		vertexBuffer;
 
 	if (points.empty() || indexes.empty()){
 		showError("OBJ has no vertices or faces");
 		return false;
 	}
+	
+	//metemos todos los vertices por orden para pasarselos al buffer de vulkan
+	std::vector<Vect3> vertexes;
+	vertexes.reserve(indexes.size());
+	for (uint32_t index: indexes){
+		auto it = points.find(index);
+		if (it == points.end()){
+			showError("vertex don't exists in OBJ");
+			return false;
+		}
+		vertexes.push_back(it->second);
+		vertexCount++;
+	}
 
+	//creamos el buffer de los vertices, y ya reservara memoria en la gpu.
 	VkBufferCreateInfo bufferInfo{};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufferInfo.size = sizeof(Vect3) * indexes.size();
 	bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
 	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-	if (vkCreateBuffer(device, &bufferInfo, nullptr, &vertexBuffer) != VK_SUCCESS) {
-		showError("failed to create vertex buffer");
+	VmaAllocationCreateInfo	allocInfo{};
+	allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+	allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT | 
+                      VMA_ALLOCATION_CREATE_MAPPED_BIT;
+
+	//el apartado .pMappedData tendra la & de esa alocacion al llamarla con vmaCreateBuffer
+	VmaAllocationInfo	allocationInfo{};
+
+	if (vmaCreateBuffer(vmaAllocator, &bufferInfo, &allocInfo, &vertexBuffer, &vertexAllocation, &allocationInfo) != VK_SUCCESS) {
+		showError("failed to create vertex buffer via VMA");
 		return false;
 	}
+
+	//Una vez reservada la memoria, copiamos los vertices a dicho puntero pMappedData.
+	//static_cast<const void*> por que al ser virtual saltaria el compilador sin esto
+	memcpy(
+		allocationInfo.pMappedData,
+		vertexes.data(),
+		sizeof(Vect3) * vertexes.size()
+	);
 
 	return true;
 }
 // ***
-
 
 
 /*Aquí se construye el almacén de imágenes para la pantalla. Pero todavia no se componen
