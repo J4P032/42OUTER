@@ -676,9 +676,21 @@ bool VulkanInit::initializeVMA()
 bool VulkanInit::createVertexBuffer(Obj& obj3D) {
 	const VMAP&		points = obj3D.get_points();
 	const VINDEX&	indexes = obj3D.get_polygon_indexes();
+	VkBuffer		vertexBuffer;
 
 	if (points.empty() || indexes.empty()){
 		showError("OBJ has no vertices or faces");
+		return false;
+	}
+
+	VkBufferCreateInfo bufferInfo{};
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size = sizeof(Vect3) * indexes.size();
+	bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	if (vkCreateBuffer(device, &bufferInfo, nullptr, &vertexBuffer) != VK_SUCCESS) {
+		showError("failed to create vertex buffer");
 		return false;
 	}
 
