@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/18 12:42:13 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/18 18:23:34 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/26 12:07:33 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,14 @@ Obj::~Obj(void){}
 
 size_t	Obj::get_map_size(void){
 	return (_points.size());
+}
+
+const VMAP&	Obj::get_points() const{
+	return _points;
+}
+
+const VINDEX&	Obj::get_polygon_indexes() const{
+	return _polygon_indexes;
 }
 
 void	Obj::insert_vert3(size_t i, Vect3 vertex){

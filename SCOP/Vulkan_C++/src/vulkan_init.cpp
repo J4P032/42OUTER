@@ -47,8 +47,7 @@ Se podria usar en OpenGl tambien.
 SDL -> crea y gestiona la ventana
 Vulkan -> se comunica con la GPU para dibujar en la ventana.
 */
-bool VulkanInit::initialize()
-{
+bool VulkanInit::initialize(Obj& obj3D) {
 	//con -DUSING_SDL2 en el compilador podemos definir si usamos SDL2 o SDL3
 	//hay que cambiar las macros o llamada a funciones por que son diferentes.	
 	#ifdef USING_SDL2
@@ -77,7 +76,7 @@ bool VulkanInit::initialize()
 		return false;
 	}
 
-	if (!initializeVulkan())
+	if (!initializeVulkan(obj3D))
 	{
 		shutdown();
 		return false;
@@ -194,7 +193,7 @@ void VulkanInit::run()
 	}
 }
 
-bool VulkanInit::initializeVulkan()
+bool VulkanInit::initializeVulkan(Obj& obj3D)
 {
 	
 	//saca el "VkInstance vulkanInstance" de VulkanInit
@@ -246,6 +245,22 @@ bool VulkanInit::initializeVulkan()
 		showError("Unable to create Vulkan Memory Allocator");
 		return false;
 	}
+
+	// ***
+	/*	En el tutorial del triangulo no necesitabamos crear el buffer de lectura de
+		los vertices por que estaban hardcodeados en el shader. Aqui, los pillaremos
+		del parseo del .obj, asi que necesitamos meterlo en memoria una vez que hemos
+		inicializado el VMA.*/
+	if (!createVertexBuffer(obj3D)){
+		showError("Unable to create Vertex Buffer");
+		return false;
+	}
+		
+		
+		
+
+
+	// ***
 
 	//Configurará y creará el swapchain(formato de color y num de imagenes a volcar) de Vulkan más los
 	//semáforos para controlar los procesos de creación de la imágenes.
@@ -627,8 +642,8 @@ bool VulkanInit::createDevice(VkPhysicalDevice physicalDevice)
 las posiciones de los vértices. PERO AQUI NO RESERVAMOS.. sino que le pedimos al sistema
 que vamos a reservar. Es una INICIALIZACIÓN
 Como todo en Vulkan necesita componer un info, para mandarle dicha estructura
-a la funcion que aloca la memoria
-los datos se obtienen mediante funcionesde Vulkan vkGetInstanceProcAddr, vkGetDeviceProcAddr
+a la funcion que aloca la memoria. 
+Los datos se obtienen mediante funcionesde Vulkan vkGetInstanceProcAddr, vkGetDeviceProcAddr
 que como usamos Volk en el principio, este se encarga de enlazar y ejecutar */
 bool VulkanInit::initializeVMA()
 {
@@ -656,6 +671,21 @@ bool VulkanInit::initializeVMA()
 	}
 	return true;
 }
+
+// ***
+bool VulkanInit::createVertexBuffer(Obj& obj3D) {
+	const VMAP&		points = obj3D.get_points();
+	const VINDEX&	indexes = obj3D.get_polygon_indexes();
+
+	if (points.empty() || indexes.empty()){
+		showError("OBJ has no vertices or faces");
+		return false;
+	}
+
+	return true;
+}
+// ***
+
 
 
 /*Aquí se construye el almacén de imágenes para la pantalla. Pero todavia no se componen

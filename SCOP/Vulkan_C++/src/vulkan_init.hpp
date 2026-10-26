@@ -21,6 +21,7 @@
 	#include <SDL3/SDL_vulkan.h>
 #endif
 
+#include "Obj.hpp"
 #include <string>
 #include <vulkan/vulkan.h>
 #include <vector>
@@ -93,13 +94,14 @@ class VulkanInit
 
 	void showError(const std::string &errorMessasge) const;
 
-	bool initializeVulkan();
+	bool initializeVulkan(Obj& obj3D);
 	bool createVulkanInstance();
 	bool createSurface();
 	VkPhysicalDevice findPhysicalDevice();
 	bool findGraphicsQueue();
 	bool createDevice(VkPhysicalDevice physicalDevice);
 	bool initializeVMA();
+	bool createVertexBuffer(Obj& obj3D);
 	bool createSwapchain(uint32_t width, uint32_t height);
 	void destroySwapchain();
 	VkShaderModule createShaderModule(const std::string &fileName, shaderc_shader_kind kind) const;
@@ -110,7 +112,7 @@ class VulkanInit
 	void render();
 
 public:
-	bool initialize();
+	bool initialize(Obj& obj3D);
 	void shutdown();
 	void run();
 };
