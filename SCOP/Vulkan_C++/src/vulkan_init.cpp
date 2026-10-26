@@ -11,9 +11,10 @@
 /* ************************************************************************** */
 
 
-//buscar "add 2 scop" para cambiar a scop del tutorial
+//buscar "***" para cambiar a scop del tutorial
 
 #include "vulkan_init.hpp"
+#include "Vect3.hpp"
 #include "utils.hpp"
 
 #ifdef USING_SDL2
@@ -960,31 +961,43 @@ VkPipeline VulkanInit::createGraphicsPipeline()
 
 	//3. vertex pulling, don't define vertex input details
 	//Está vacia por que los vértices están metidos en el shader.
-	/*COMENTADO ESTA LA INFO DEL SCOP. Es el mapa de carreteras para que la GPU sepa interpretar los bytes del OBJ. Los puntos no están todavía.
-	1. VkVertexInputBindingDescription -> el cable. Velocidad a avanzar por la memoria. Vas a leer del slot 0 y cada vértice ocupa sizeof(Vect3) bytes
-	2.	VkVertexInputAttributeDescription -> el formato. qué es cada campo dentro de los bytes. 
-		"En el canal 0 hay datos de tipo VK_FORMAT_R32G32B32_SFLOAT (es decir, 3 floats de 32 bits, tu X, Y, Z) y empiezan en el byte 0" "
-		Con esto, la tubería queda programada para saber que cuando le envíes el buffer del OBJ, debe trocear los bytes de 3 en 3 floats para alimentar al Vertex Shader.
-		*/
+	/* En el tutorial del triangulo, solo habia un:
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
+		Pero para SCOP ha de haber dos infos mas.
+		Es el mapa de carreteras para que la GPU sepa interpretar los bytes
+		del OBJ. Los puntos no están todavía.
+		1. VkVertexInputBindingDescription -> el cable. Velocidad a avanzar por
+			la memoria. Vas a leer del slot 0 y cada vértice ocupa sizeof(Vect3) bytes
+		2.	VkVertexInputAttributeDescription -> el formato. qué es cada campo
+			dentro de los bytes. 
+			En el canal 0 hay datos de tipo VK_FORMAT_R32G32B32_SFLOAT (es decir,
+			3 floats de 32 bits, tu X, Y, Z) y empiezan en el byte 0
+		Con esto, la tubería queda programada para saber que cuando le envíes el
+		buffer del OBJ, debe trocear los bytes de 3 en 3 floats para alimentar
+		al Vertex Shader.
+	*/
 
-	//Add 2 Scop
+	// ***
 	VkVertexInputBindingDescription miBindingDescription{};
 	miBindingDescription.binding = 0;
-	miBindingDescription.stride = sizeof(Vect3);
+	miBindingDescription.stride = sizeof(Vect3); //avanzar hasta el siguiente vertice
 	miBindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+
+	VkVertexInputAttributeDescription miAttributeDescription{};
+	miAttributeDescription.location = 0; //alimentar entrada num0 del shader (inPosition)
+	miAttributeDescription.binding = 0; //utiliza buffer identificado con num 0
+	miAttributeDescription.format = VK_FORMAT_R32G32B32_SFLOAT; //leera 3 float de 32bits
+	miAttributeDescription.offset = 0; //empezar a leer desde el primer byte de cada vertice
 
 	VkPipelineVertexInputStateCreateInfo vertInputInfo
 	{
-		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO
-		/* para SCOP:
-			.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
-    		.vertexBindingDescriptionCount = 1,
-    		.pVertexBindingDescriptions = &miBindingDescription,   // El cable
+		.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,
+   		.vertexBindingDescriptionCount = 1,
+    	.pVertexBindingDescriptions = &miBindingDescription,  // El cable
     		.vertexAttributeDescriptionCount = 1,
     		.pVertexAttributeDescriptions = &miAttributeDescription // El formato
-			crear los miBindingDescription y miAttributeDescription como en rust.
-		*/
 	};
+	// ***
 
 	//4. input assembly, we'll be drawing triangle lists
 	//al poner VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST le dice que espere 3 puntos y dibuje el triángulo
