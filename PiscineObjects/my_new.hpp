@@ -3,7 +3,7 @@
 
 #include <new>
 
-
+//Para usarlo: Animal* p1 = my_new<Perro>();
 //fallo asignación de memoria
 template <typename T>
 T*	my_new() {
