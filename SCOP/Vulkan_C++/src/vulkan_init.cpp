@@ -699,6 +699,12 @@ bool VulkanInit::createVertexBuffer(Obj& obj3D) {
 	}
 
 	//creamos el buffer de los vertices, y ya reservara memoria en la gpu.
+	/* al usar VMA_ALLOCATION_CREATE_MAPPED_BIT le digo a VMA que cree el buffer
+	y haga vkMapMemory automaticamente. Por eso la direccion de memoria ya viene lista
+	en allocationInfo.pMappedData. 
+	SEQUENTIAL_WRITE -> indica que busque memoria ideal para escribir rafagas de datos
+	desde la CPU de forma secuencial
+	*/
 	VkBufferCreateInfo bufferInfo{};
 	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 	bufferInfo.size = sizeof(Vect3) * indexes.size();
@@ -719,7 +725,6 @@ bool VulkanInit::createVertexBuffer(Obj& obj3D) {
 	}
 
 	//Una vez reservada la memoria, copiamos los vertices a dicho puntero pMappedData.
-	//static_cast<const void*> por que al ser virtual saltaria el compilador sin esto
 	memcpy(
 		allocationInfo.pMappedData,
 		vertexes.data(),
@@ -1005,7 +1010,7 @@ VkPipeline VulkanInit::createGraphicsPipeline()
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-		.setLayoutCount = 0, 
+		.setLayoutCount = 0,
 		.pushConstantRangeCount = 0
 	};
 	if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
@@ -1594,18 +1599,44 @@ void VulkanInit::render()
 		};
 		vkCmdSetScissor(res.commandBuffer, 0, 1, &scissor);
 
-		// draw our triangle
+		// draw vertexes
 		/* vkCmdBindPipeline -> todo lo que a partir de ahora mande dibujar (VK_PIPELINE_BIND_POINT_GRAPHICS),
 			tiene que procesarse usando las reglas de este "pipeline" específico.
 			En el proyecto SCOP hay un apartado que dice que al dar a una tecla se tiene que cambiar
 			de gris a textura. Habría que hacer dos pipelines y luego hacer esta llamada en cada caso*/
 		vkCmdBindPipeline(res.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 		
+		// ***
+		/* Le decimos a vulkan donde estan los vertices en su VRAM con bind.
+		
+			vkCmdBindVertexBuffers(
+    			VkCommandBuffer      commandBuffer,
+    			uint32_t             firstBinding,
+    			uint32_t             bindingCount,
+    			const VkBuffer*      pBuffers,
+    			const VkDeviceSize*  pOffsets );
+		
+		En vulkan le pasamos los datos de los vertices al shader por canales o slots llamados bindings
+		0 -> quiero enganchar el vertexBuffer con el binding 0, ya que en el shader.vert tenemos layout(location = 0) in vec3 inPosition;
+		1 -> indica cuantos vertexBuffers estoy bindeando. Al ser solo uno, pues 1.
+			Si en el futuro quisiera pasarle la posicion y el color/texturas en otro buffer distinto pondria 2.
+		offsets -> punto de inicio en bytes al ponerle 0 es el inicio del buffer. Es un
+					array, por que hay que emparentarse con el num de buffer que se envia. 1buffer = 1offset
+					Si en un buffer gigante se guardan los vertices de una casa y un coche, si quiero dibujar
+					el coche, usaria el offset para leer despues de la casa.
+		*/
+			VkDeviceSize offsets[] = {0};
+			vkCmdBindVertexBuffers(res.commandBuffer, 0, 1, &vertexBuffer, offsets);
+
+		// ***
+
+
 		/*	3 -> es el numero de vertices a dibujar
 			1 -> es el número de instancias para no recalcular. Solo queremos una
 			0 -> firstVertex. El indice del primer vértice Es un offset para leer desde ese primero
 			0 -> firstInstance. lo mismo con instancias. Al no usarlas ponemos 0.*/
-		vkCmdDraw(res.commandBuffer, 3, 1, 0, 0);
+		//vkCmdDraw(res.commandBuffer, 3, 1, 0, 0);
+		vkCmdDraw(res.commandBuffer, vertexCount, 1, 0, 0);
 
 		/* En este tutorial están hardcodeados la posición de los vértices dentrod del shader
 		que fueron metidas a fuego dentro del "pipeline" cuando se creó con VkPipeline.
