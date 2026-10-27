@@ -1617,7 +1617,9 @@ void VulkanInit::render()
     			const VkDeviceSize*  pOffsets );
 		
 		En vulkan le pasamos los datos de los vertices al shader por canales o slots llamados bindings
-		0 -> quiero enganchar el vertexBuffer con el binding 0, que enlaza 
+		0 -> quiero enganchar el vertexBuffer con el binding 0, que enlaza con 
+			VkVertexInputBindingDescription miBindingDescription{};
+				miBindingDescription.binding = 0;
 		1 -> indica cuantos vertexBuffers estoy bindeando. Al ser solo uno, pues 1.
 			Si en el futuro quisiera pasarle la posicion y el color/texturas en otro buffer distinto pondria 2.
 		offsets -> punto de inicio en bytes al ponerle 0 es el inicio del buffer. Es un
