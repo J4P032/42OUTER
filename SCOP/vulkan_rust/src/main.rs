@@ -6,9 +6,16 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/20 15:13:18 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/28 13:10:20 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
+
+#![allow(warnings)]
+
+mod vulkan_api;
+
+use ash::Entry;
+use crate::vulkan_api::VulkanApi;
 
 use std::process::ExitCode; //exit code in main, as return (1 or 0)
 use std::fs::File; //open file
@@ -95,6 +102,14 @@ fn scop(args: &Vec<String>) -> Result<(), &'static str>{
 	
 	obj3d.write_me();
 	
+	let mut vulkan_api = VulkanApi::new();
+    if vulkan_api.initialize() {
+        vulkan_api.run();
+    }
+    vulkan_api.shutdown();
+
+
+	
 	Ok(())
 }
 
@@ -112,3 +127,41 @@ fn main() -> ExitCode {
 	}
 	ExitCode::from(0)
 }
+
+/* 
+#![allow(warnings)]
+
+mod vulkan_api;
+
+use ash::Entry;
+use crate::vulkan_api::VulkanApi;
+
+fn main() {
+
+    
+    
+    // 1. Prueba de SDL2 (Reemplaza a SDL3 temporalmente)
+    let _sdl_context = sdl2::init().expect("Error al inicializar SDL2");
+    println!("✅ SDL2 detectado correctamente.");
+
+    // 2. Prueba de Vulkan (Carga dinámica)
+    unsafe {
+        let entry = Entry::load().expect("No se encontró el SDK de Vulkan");
+        if let Ok(Some(version)) = entry.try_enumerate_instance_version() {
+            println!(
+                "✅ Vulkan SDK detectado. Versión: {}.{}.{}",
+                ash::vk::api_version_major(version),
+                ash::vk::api_version_minor(version),
+                ash::vk::api_version_patch(version)
+            );
+        }
+    }
+
+    let mut vulkan_api = VulkanApi::new();
+    if vulkan_api.initialize() {
+        vulkan_api.run();
+    }
+    vulkan_api.shutdown();
+
+
+} */
