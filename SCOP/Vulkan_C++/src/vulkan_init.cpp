@@ -731,6 +731,20 @@ bool VulkanInit::createVertexBuffer(Obj& obj3D) {
 		sizeof(Vect3) * vertexes.size()
 	);
 
+	/*hacemos visibles para la GPU los datos escritos por la CPU, incluso si no es coherente
+		La CPU y la GPU tienen formas distintas de acceder a la memoria. Al copiarla con memcpy
+		de la CPU a la GPU puede que no se "entere" la GPU.
+		Cuando la CPU manda memcpy primero pasan por las memorias cache de la CPU (L1,L2,L3) porque
+		es mas rapido. Si la GPU intenta leer el buffer en ese momento leera la memoria principal
+		que esta vacia o tiene basura.
+		vmaFlushAllocation obliga a la CPU vaciar la cache y empujar los datos hacia la memoria
+		principal para que la GPU pueda leerlos.	
+	*/
+	if (vmaFlushAllocation(vmaAllocator, vertexAllocation, 0, VK_WHOLE_SIZE) != VK_SUCCESS){
+		showError("Failed to flush vertex buffer");
+		return false;
+	}
+
 	return true;
 }
 // ***
@@ -1116,8 +1130,10 @@ VkPipeline VulkanInit::createGraphicsPipeline()
 	VkPipelineRasterizationStateCreateInfo rasterInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO,
-		.polygonMode = VK_POLYGON_MODE_FILL, //Triángulo relleno, no solo lineas
+		//.polygonMode = VK_POLYGON_MODE_FILL, //Triángulo relleno, no solo lineas
+		.polygonMode = VK_POLYGON_MODE_LINE,
 		.cullMode = VK_CULL_MODE_BACK_BIT, //Backcull. No pinta la geometria de atrás.
+		//.cullMode = VK_CULL_MODE_NONE,
 		.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE,
 		.lineWidth = 1.0f,
 	};
