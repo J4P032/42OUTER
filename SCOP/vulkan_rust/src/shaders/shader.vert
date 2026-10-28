@@ -1,3 +1,4 @@
+//para Compilar: glslc shader.vert -o vert.spv
 #version 460
 
 layout(location = 0) in vec3 inPosition;
