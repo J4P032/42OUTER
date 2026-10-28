@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/19 11:39:29 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/19 19:34:50 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/28 16:00:37 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,6 +38,18 @@ impl Obj{
 impl Obj{
 	pub fn map_len(&self) -> usize{
 		self._points.len() as usize
+	}
+}
+
+impl Obj{
+	pub fn get_points(&self) -> &BTreeMap<usize, Vect3> {
+		&self._points
+	}
+}
+
+impl Obj{
+	pub fn get_polygon_indexes(&self) -> &Vec<u32> {
+		&self._polygon_indexes
 	}
 }
 

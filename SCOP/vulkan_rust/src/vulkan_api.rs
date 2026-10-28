@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/20 15:12:39 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/28 17:46:15 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,6 +32,9 @@ use ash::vk::*; //for short calls of defines and enums
 use ash::khr::*;
 use sdl2::video::Window;
 use ash::Entry; //parte del volk
+use	crate::Obj;
+use crate::Vect3;
+use vk_mem::Alloc;
 
 pub const VULKAN_VERSION: u32 = API_VERSION_1_3;
 pub const MAX_FRAMES_IN_FLIGHT: usize = 2;
@@ -48,6 +51,7 @@ pub struct VulkanApi{
 	event_pump:					Option<sdl2::EventPump>,
 	width:						u32,
 	height:						u32,
+	vertex_count: 				u32,
 	running:					bool,
 	frame_index:				u32,
 	next_signal_value:			u32,
@@ -60,7 +64,9 @@ pub struct VulkanApi{
 	surface_loader:				Option<ash::khr::surface::Instance>,
 	vma_allocator:				Option<vk_mem::Allocator>,
 	vulkan_entry:				Option<ash::Entry>,
-
+	vertex_buffer:				Option<ash::vk::Buffer>,
+	vertex_allocation:			Option<vk_mem::Allocation>,
+	
 	//queue related
 	gfx_queue_fam_idx:			u32,
 	gfx_queue:					Option<Queue>,
@@ -179,6 +185,7 @@ impl VulkanApi{
 			event_pump:					None,
 			width: 						1280,
 			height:						720,
+			vertex_count:				0,
 			running:					false,
 			frame_index:				0,
 			next_signal_value:			1,
@@ -189,6 +196,8 @@ impl VulkanApi{
 			surface_loader:				None,
 			vma_allocator:				None,
 			vulkan_entry:				None,
+			vertex_buffer:				None,
+			vertex_allocation:			None,
 			gfx_queue_fam_idx:			u32::MAX,
 			gfx_queue:					None,
 			swapchain:					None,
@@ -225,7 +234,7 @@ impl VulkanApi {
 			&self.window);
 	}
 
-	pub fn initialize(&mut self) -> bool {
+	pub fn initialize(&mut self, obj3d: Obj) -> bool {
 		if let Ok(sdl_init) = sdl2::init() {
 			if let Ok(video_subsystem) = sdl_init.video() {
 				match video_subsystem.window("Scop Rust", self.width, self.height).position_centered().vulkan().resizable().build() {
@@ -253,7 +262,7 @@ impl VulkanApi {
 			return false;
 		}
 
-		if !self.initialize_vulkan() {
+		if !self.initialize_vulkan(obj3d) {
 			return false;
 		}
 		true
@@ -261,7 +270,7 @@ impl VulkanApi {
 }
 
 impl VulkanApi {
-	fn initialize_vulkan(&mut self) -> bool {
+	fn initialize_vulkan(&mut self, obj3d: Obj) -> bool {
 		if !self.create_vulkan_instance() {
 			self.show_error("Couldn't create a vulkan instance");
 			return false;
@@ -292,6 +301,13 @@ impl VulkanApi {
 			self.show_error("Unable to create Vulkan Memory Allocator");
 			return false;
 		}
+
+		// ***
+		if (!self.create_vertex_buffer(obj3d)){
+			self.show_error("Unable to create Vertex Buffer");
+			return false;
+		}
+		// ***
 
 		if !self.create_swapchain(self.width, self.height){
 			self.show_error("Unable to create swapchain");
@@ -535,6 +551,78 @@ impl VulkanApi {
 		true
 	}
 
+	// ***
+	/* We need to create a vertex Buffer to allow copy of obj stored vertexes into GPU */
+	fn create_vertex_buffer(&mut self, obj3d: Obj) -> bool{
+		
+		let points = obj3d.get_points();
+		let indexes = obj3d.get_polygon_indexes();
+		
+		if points.is_empty() || indexes.is_empty() {
+			self.show_error("OBJ has no vertices or faces");
+			return false;
+		}
+
+		let mut vertexes: Vec<Vect3> = Vec::with_capacity(indexes.len());
+		for index in indexes {
+
+			if let Some(vertex) = points.get(&(*index as usize -1)){
+				vertexes.push(*vertex);
+				self.vertex_count += 1;
+			} else {
+				self.show_error("vertex don't exists in OBJ");
+				return false;
+			}
+		}
+	
+		//Create buffer of vertexes
+		let buffer_info = ash::vk::BufferCreateInfo::default()
+			.size((std::mem::size_of::<Vect3>() * indexes.len()) as ash::vk::DeviceSize)
+			.usage(ash::vk::BufferUsageFlags::VERTEX_BUFFER)
+			.sharing_mode(ash::vk::SharingMode::EXCLUSIVE);
+
+		let alloc_info = vk_mem::AllocationCreateInfo {
+    		usage: vk_mem::MemoryUsage::Auto,
+    		flags: vk_mem::AllocationCreateFlags::HOST_ACCESS_SEQUENTIAL_WRITE 
+        		| vk_mem::AllocationCreateFlags::MAPPED,
+    	..Default::default()
+		};
+
+		if let Some(allocator) = &self.vma_allocator {
+			let (vertex_buffer, vertex_allocation) = match unsafe { allocator.create_buffer(&buffer_info, &alloc_info) } {
+        		Ok(result) => result,
+        		Err(_) => {
+            		self.show_error("failed to create vertex buffer via VMA");
+            		return false;
+        		}
+			};
+		
+			let allocation_info = allocator.get_allocation_info(&vertex_allocation);
+
+			if !allocation_info.mapped_data.is_null() {
+    		unsafe { std::ptr::copy_nonoverlapping(
+            		vertexes.as_ptr() as *const u8,
+            		allocation_info.mapped_data as *mut u8,
+            		std::mem::size_of::<Vect3>() * vertexes.len(),
+        		); }
+			}
+			
+			if allocator.flush_allocation(&vertex_allocation, 0, ash::vk::WHOLE_SIZE as u64).is_err() {
+    			self.show_error("Failed to flush vertex buffer");
+	    		return false;
+			}
+			
+			self.vertex_buffer = Some(vertex_buffer);
+			self.vertex_allocation = Some(vertex_allocation);
+		} else {
+			self.show_error("VMA Allocator is not initialized");
+			return false;
+		}
+		true
+	}
+	
+	// **
+	
 	/*in C++ to find functions from KHR_Surface, que used Volk, but here we need
 		to separate it. So we need a surface_loader variable that loads all those functions
 		because they are not in basic ash instance. Same for swapchain creation*/
@@ -764,24 +852,23 @@ impl VulkanApi {
 
 			BE CAREFULL WITH LIFETIME AS binding_descriptions will last only here and 			
 			*/
-		let mut vert_input_info = ash::vk::PipelineVertexInputStateCreateInfo::default();
-		/* 
-		PARA SCOP!!!!!
 		
-		vert_input_info.vertex_binding_description_count = 1;
-		let binding_descriptions = ash::vk::VertexInputBindingDescription::default()
+		// ***
+		let binding_descriptions = [ash::vk::VertexInputBindingDescription::default()
 			.binding(0)
-			.stride(std::mem::size_of::<u32>() as u32)
-			.input_rate(ash::vk::VertexInputRate::VERTEX);
-		let attribute_descriptions = ash::vk::VertexInputAttributeDescription::default()
+			.stride(std::mem::size_of::<Vect3>() as u32)
+			.input_rate(ash::vk::VertexInputRate::VERTEX)];
+		let attribute_descriptions = [ash::vk::VertexInputAttributeDescription::default()
 			.location(0) //shader.vert line: layout(location = 0) in vec3 inPosition; 
 			.binding(0) //same as binding_descritions.binding
 			.format(ash::vk::Format::R32G32B32_SFLOAT)
-			.offset(0);
-		vert_input_info.p_vertex_binding_descriptions = &binding_descriptions;
+			.offset(0)];
+		let mut vert_input_info = ash::vk::PipelineVertexInputStateCreateInfo::default();
+		vert_input_info.vertex_binding_description_count = 1;
+		vert_input_info.p_vertex_binding_descriptions = binding_descriptions.as_ptr();
 		vert_input_info.vertex_attribute_description_count = 1;
-		vert_input_info.p_vertex_attribute_descriptions = &attribute_descriptions; 
-		*/
+		vert_input_info.p_vertex_attribute_descriptions = attribute_descriptions.as_ptr(); 
+		// ***
 		
 		//4. input assembly, we'll be drawing triangle lists
 		let input_assembly_info = ash::vk::PipelineInputAssemblyStateCreateInfo::default()
@@ -1178,8 +1265,26 @@ impl VulkanApi {
 		//draw our triangle
 		let Some(pipeline) = &self.pipeline else { return; };
 		unsafe { device.cmd_bind_pipeline(*command_buffer, ash::vk::PipelineBindPoint::GRAPHICS, *pipeline)}
-		unsafe { device.cmd_draw(*command_buffer, 3, 1, 0, 0) };
-	
+		
+		// ***
+		if let Some(v_buffer) = &self.vertex_buffer {
+    		let buffers = [*v_buffer];
+    		let offsets = [0]; 
+    
+    		unsafe {
+        		device.cmd_bind_vertex_buffers(
+            		*command_buffer,
+            		0,          // primer binding
+            		&buffers,   // array de buffers
+            		&offsets,   // array de offsets
+        		);
+   			 }
+		}
+
+		unsafe { device.cmd_draw(*command_buffer, self.vertex_count, 1, 0, 0) };
+		// ***
+		
+				
 		//end dynamic rendering
 		unsafe { device.cmd_end_rendering(*command_buffer) };
 
@@ -1337,10 +1442,18 @@ impl VulkanApi {
 		// cleanup swapchain
 		self.destroy_swapchain();
 
-		if let Some(allocator) = self.vma_allocator.take() { 
-			//using take it drops vma_allocator Option out of this scope
-			//it doesn't exist vmaDestroyAllocator(vmaAllocator);
+		//VMA ***
+		if let (Some(allocator), Some(v_buffer), Some(mut v_allocation)) = (
+				&self.vma_allocator,
+				self.vertex_buffer.take(),
+				self.vertex_allocation.take()) {
+			unsafe { allocator.destroy_buffer(v_buffer, &mut v_allocation) };
 		}
+		// ***
+		
+		/*using take it drops vma_allocator Option out of this scope
+		it doesn't exist vmaDestroyAllocator(vmaAllocator); */
+		if let Some(allocator) = self.vma_allocator.take() {}
 
 		// cleanup Vulkan
 		if let Some(device) = &self.device {

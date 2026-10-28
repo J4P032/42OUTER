@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/28 13:10:20 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/10/28 15:44:07 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -103,7 +103,7 @@ fn scop(args: &Vec<String>) -> Result<(), &'static str>{
 	obj3d.write_me();
 	
 	let mut vulkan_api = VulkanApi::new();
-    if vulkan_api.initialize() {
+    if vulkan_api.initialize(obj3d) {
         vulkan_api.run();
     }
     vulkan_api.shutdown();
