@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/28 17:46:15 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/02 14:19:22 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -599,12 +599,13 @@ impl VulkanApi {
 		
 			let allocation_info = allocator.get_allocation_info(&vertex_allocation);
 
+			/*copy_nonoverlapping is like memcpy. BUT latest parameter is not num
+			of bytes to copy BUT num of elements to copy. */
 			if !allocation_info.mapped_data.is_null() {
     		unsafe { std::ptr::copy_nonoverlapping(
-            		vertexes.as_ptr() as *const u8,
-            		allocation_info.mapped_data as *mut u8,
-            		std::mem::size_of::<Vect3>() * vertexes.len(),
-        		); }
+						vertexes.as_ptr(),
+						allocation_info.mapped_data as *mut Vect3,
+						vertexes.len())}
 			}
 			
 			if allocator.flush_allocation(&vertex_allocation, 0, ash::vk::WHOLE_SIZE as u64).is_err() {
@@ -897,7 +898,8 @@ impl VulkanApi {
 
 		//7. rasterizer settings
 		let raster_info = ash::vk::PipelineRasterizationStateCreateInfo::default()
-			.polygon_mode(ash::vk::PolygonMode::FILL) //fill triangle
+			//.polygon_mode(ash::vk::PolygonMode::FILL) //fill triangle
+			.polygon_mode(ash::vk::PolygonMode::LINE)
 			.cull_mode(ash::vk::CullModeFlags::BACK) //no draw backface
 			.front_face(ash::vk::FrontFace::COUNTER_CLOCKWISE)
 			.line_width(1.0);
