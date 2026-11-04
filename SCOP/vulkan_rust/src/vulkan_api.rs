@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/02 14:19:22 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/04 15:27:31 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ pub struct FrameResources{
 	pub image_adquired_semaphore:	Option<Semaphore>,
 }
 pub struct VulkanApi{
+	sdl_context:				Option<sdl2::Sdl>,
 	window:						Option<Window>,
 	event_pump:					Option<sdl2::EventPump>,
 	width:						u32,
@@ -181,6 +182,7 @@ impl VulkanApi{
 
 	pub fn new() -> Self{
 		Self {
+			sdl_context:				None,
 			window:						None,
 			event_pump:					None,
 			width: 						1280,
@@ -256,7 +258,8 @@ impl VulkanApi {
 				return false;
 			};
 			self.event_pump = Some(event_pump); //for run() check events.
-
+			self.sdl_context = Some(sdl_init);
+			
 		} else {
 			self.show_error("Error creating window. No SDL2 init");
 			return false;
@@ -1471,7 +1474,13 @@ impl VulkanApi {
 		}
 
 		// cleanup SDL
+		/*Antes no guardaba la variable sdl_context que moria en el initialize
+		al terminar. Eso hace que se active el limpiador de sdl, por que no existe
+		el quit_sdl en rust, asi que al no encontrar todo construido, pararia de 
+		liberar y quedaria cojo. De esta manera sobrevive el context y al
+		final es lo ultimo por liberar. Las fugas se deben al propio SDL2 */
 		if let Some(_window) = self.window.take() {}
 		if let Some(_event_pump) = self.event_pump.take() {}
+		if let Some(_sdl_context) = self.sdl_context.take() {}
 	}
 }

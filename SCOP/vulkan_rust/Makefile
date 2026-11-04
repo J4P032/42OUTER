@@ -19,6 +19,12 @@ sdl2 = ["dep:sdl2"]
 [dependencies.sdl2]
 version = "0.36"
 optional = true
+
+#esto es para hacer que rust meta las variables para valgrind
+[profile.dev]
+debug = 2
+split-debuginfo = "off"
+
 endef
 export CARGO_TOML_CONTENT
 
