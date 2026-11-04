@@ -21,6 +21,7 @@ version = "0.36"
 optional = true
 
 #esto es para hacer que rust meta las variables para valgrind
+#valgrind: RUST_BACKTRACE=1 valgrind --leak-check=full ./scop teapot.obj
 [profile.dev]
 debug = 2
 split-debuginfo = "off"
