@@ -1,0 +1,32 @@
+{
+   Ignore_SDL3_X11
+   Memcheck:Leak
+   match-leak-kinds: definite,indirect
+   ...
+   obj:*/libSDL3.so*
+   ...
+}
+{
+   Ignore_DlOpen_Drivers
+   Memcheck:Leak
+   match-leak-kinds: definite,indirect
+   fun:malloc
+   ...
+   fun:_dl_open
+   ...
+}
+{
+   Ignore_Glibc_Grapheme_Rpath_Read
+   Memcheck:Value8
+   fun:strncmp
+   fun:is_dst
+   ...
+   fun:_dl_map_object
+}
+{
+   Ignore_Reachable_System_Libraries
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   ...
+   obj:*
+}
