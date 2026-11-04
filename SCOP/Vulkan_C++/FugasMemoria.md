@@ -52,8 +52,10 @@ Para evitar que los drivers del sistema empañen el reporte de Valgrind y poder 
 
 Puedes ejecutar Valgrind indicándole que ignore de forma segura los falsos positivos de las librerías gráficas del sistema con el siguiente comando:
 
+(Saldrán muchas lineas por el --show-leak-kinds=all para ver los still reachable. Quitarlo para
+resumir)
 ```bash
-valgrind --leak-check=full --suppressions=scop.supp ./scop resources/teapot.obj
+valgrind --leak-check=full --show-leak-kinds=all --suppressions=scop.supp ./scop resources/teapot.obj
 ```
 
 Un archivo `scop.supp` correcto para filtrar el ruido de SDL, X11 y lecturas optimizadas del cargador de Linux tiene este aspecto:

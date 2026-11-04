@@ -28,6 +28,8 @@ target_compile_options(scop PRIVATE
     -Wno-unused-parameter
     -Wno-missing-field-initializers
     -Wno-missing-braces
+    #-g
+    #-fsanitize=address
 )
 
 # --------------------------------------------------
@@ -131,6 +133,8 @@ endif()
 # --------------------------------------------------
 # Enlazado de Vulkan y shaderc
 # --------------------------------------------------
+
+#target_link_options(scop PRIVATE -fsanitize=address)
 
 target_link_libraries(scop PRIVATE shaderc_combined)
 
