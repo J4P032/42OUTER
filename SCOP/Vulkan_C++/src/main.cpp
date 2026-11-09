@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 13:18:17 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/09 13:14:19 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/09 15:47:49 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -45,6 +45,12 @@ void	scop(int ac, char** av){
 		scop.run();
 	}
 	scop.shutdown();
+
+	//test matrix
+	Matrix<3, 2> A;
+	Matrix<2, 4> B;
+	Matrix<3, 4> C = A * B;
+
 }
 
 int	main(int ac, char** av){

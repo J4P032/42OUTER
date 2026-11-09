@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/09 12:05:17 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/09 13:07:41 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/09 17:47:53 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,10 +28,10 @@ public:
 	~Matrix(void);
 	
 	//getters
-	std::array<float, Rows * Cols> get_matrix(void) const;
+	const std::array<float, Rows * Cols>& get_matrix(void) const;
 	
 	//setters
-	void	set_matrix(size_t row, size_t col, float num);
+	bool	set_matrix(size_t row, size_t col, float num);
 	
 	//operators
 	/*for to Matrixes A(a,b), B(c,d), where a & c are rows
