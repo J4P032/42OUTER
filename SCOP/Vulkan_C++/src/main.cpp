@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 13:18:17 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/26 17:26:11 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/09 13:14:19 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,7 @@
 #include <stdexcept>
 #include <fstream>
 #include <map>
+#include "Matrix.hpp"
 
 Obj	process_file(char* str){
 	std::ifstream	inputFile(str);
