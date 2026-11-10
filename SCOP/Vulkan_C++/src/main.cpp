@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 13:18:17 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/09 15:47:49 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/10 14:17:12 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,10 +47,23 @@ void	scop(int ac, char** av){
 	scop.shutdown();
 
 	//test matrix
-	Matrix<3, 2> A;
-	Matrix<2, 4> B;
-	Matrix<3, 4> C = A * B;
-
+	Matrix<2, 2> A;
+	A.set_matrix(0, 0, 1);
+	A.set_matrix(0, 1, 2);
+	A.set_matrix(1, 0, 1);
+	A.set_matrix(1, 1, 1);
+	Matrix<2, 2> B;
+	B.set_matrix(0, 0, 1);
+	B.set_matrix(0, 1, 2);
+	B.set_matrix(1, 0, 1);
+	B.set_matrix(1, 1, 2);
+	Matrix<2, 2> C = A * B;
+	std::cout << C << std::endl;
+	std::array<float, 4> v = C.get_vertical_matrix();
+	for (const auto num : v){
+		std::cout << num << ", ";
+	}
+	std::cout << std::endl;
 }
 
 int	main(int ac, char** av){

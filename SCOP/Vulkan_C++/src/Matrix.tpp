@@ -6,11 +6,12 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/09 12:47:35 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/09 17:47:47 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/10 14:10:47 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include <iostream>
+
 
 template<size_t Rows, size_t Cols>
 Matrix<Rows, Cols>::Matrix(void) : _matrix{} {} //all elements 0.0f
@@ -43,6 +44,20 @@ bool	Matrix<Rows, Cols>::set_matrix(size_t row, size_t col, float num){
 }
 
 template<size_t Rows, size_t Cols>
+const std::array<float, Rows * Cols>	Matrix<Rows, Cols>::get_vertical_matrix(void) const{
+	std::array<float, Rows * Cols> 	vArray;
+	size_t							index = 0;
+	
+	for (size_t col = 0; col < Cols; col++) {
+		for (size_t row = 0; row < Rows; row++) {
+			vArray[index] = _matrix[row * Cols + col];
+			index++;
+		}
+	}
+	return vArray;
+}
+
+template<size_t Rows, size_t Cols>
 template<size_t otherCols> 
 Matrix<Rows, otherCols> Matrix<Rows, Cols>::operator*(const Matrix<Cols, otherCols>& M) const{
 	Matrix<Rows, otherCols> AUX;
@@ -60,6 +75,7 @@ Matrix<Rows, otherCols> Matrix<Rows, Cols>::operator*(const Matrix<Cols, otherCo
 			AUX.set_matrix(row, oCol, solution);
 		}
 	}
-	
 	return AUX;
 }
+
+
