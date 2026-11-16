@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/04 15:27:31 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/16 12:22:47 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -229,7 +229,7 @@ impl VulkanApi{
 */
 impl VulkanApi {
 	fn show_error(&self, error_message: &str ) {
-		sdl2::messagebox::show_simple_message_box(
+		let _ = sdl2::messagebox::show_simple_message_box(
 			sdl2::messagebox::MessageBoxFlag::ERROR,
 			"Error",
 			error_message,
@@ -306,7 +306,7 @@ impl VulkanApi {
 		}
 
 		// ***
-		if (!self.create_vertex_buffer(obj3d)){
+		if !self.create_vertex_buffer(obj3d){
 			self.show_error("Unable to create Vertex Buffer");
 			return false;
 		}
@@ -420,14 +420,10 @@ impl VulkanApi {
 	
 	/*enumerate_physical_devices(&self) -> VkResult<Vec<PhysicalDevice>> */
 	fn find_physical_device(&mut self) -> Option<PhysicalDevice> {
-		let mut device: PhysicalDevice = PhysicalDevice::null();
-		
-		//vulkan_instance:			Option<ash::Instance>,
 		let Some(instance) = &self.vulkan_instance else { return None; };
-		//let mut physical_devices = Vec::<PhysicalDevice>::new();
 		let Ok(physical_devices) = (unsafe {instance.enumerate_physical_devices()}) else { return None;};
 		if physical_devices.len() > 0 {
-			device = physical_devices[0]; 
+			let mut device = physical_devices[0]; 
 			for idevice in physical_devices {
 				let props = unsafe { instance.get_physical_device_properties(idevice) }; //props = PhysicalDeviceProperties
 				if props.device_type == PhysicalDeviceType::DISCRETE_GPU {
@@ -485,7 +481,7 @@ impl VulkanApi {
 			return false;
 		}
 		let dev = physical_device.unwrap();
-		let mut queue_priority: f32 = 1.0;
+		let queue_priority: f32 = 1.0;
         let binding = [queue_priority]; //need to extend lifetime
 		let gfx_queue_info = DeviceQueueCreateInfo::default()
 			.queue_family_index(self.gfx_queue_fam_idx)
@@ -698,7 +694,7 @@ impl VulkanApi {
 		//4.Semaphores.
 		let num_images = self.swapchain_images.len();
 		self.render_complete_semaphores.reserve(num_images);
-		let mut semaphore_info = ash::vk::SemaphoreCreateInfo::default(); //MIRAR SI METERLO DENTRO DEL FOR
+		let semaphore_info = ash::vk::SemaphoreCreateInfo::default(); //MIRAR SI METERLO DENTRO DEL FOR
 		for _ in 0..num_images{
 			let Ok(semaphore) = (unsafe{device.create_semaphore(&semaphore_info, None)}) else {
 				self.show_error("Error creating the render-complete semaphore");
@@ -829,7 +825,7 @@ impl VulkanApi {
 		let Some(frag_shader) = &self.frag_shader else { return None;};
 		let entry_point = b"main\0"; //b".." is static memory. No heap like CString::new("main")
 		
-		let mut shader_stages: Vec::<ash::vk::PipelineShaderStageCreateInfo> = vec![
+		let shader_stages: Vec::<ash::vk::PipelineShaderStageCreateInfo> = vec![
 			ash::vk::PipelineShaderStageCreateInfo{
 				stage:	ash::vk::ShaderStageFlags::VERTEX,
 				module: *vert_shader,
@@ -1056,14 +1052,14 @@ impl VulkanApi {
 	*/
 impl VulkanApi {
 	pub fn run(&mut self) {
-		let mut running = true;
+		self.running = true;
 		
-		while running {
+		while self.running {
 			let Some(event_pump) = &mut self.event_pump else { return; };
 			for event in event_pump.poll_iter(){
 				match event {
 					sdl2::event::Event::Quit { .. } => { //{..} = ignore internal values
-						running = false;
+						self.running = false;
 					}
 					
 					sdl2::event::Event::Window { win_event: sdl2::event::WindowEvent::Resized(w, h), .. } => { 
@@ -1121,7 +1117,7 @@ impl VulkanApi {
 		let Some(swapchain) = &self.swapchain else { return; };
 		
 		// handle resize and out-of-date images, may need swapchain recreate
-		let result = (unsafe {swapchain_loader.acquire_next_image(*swapchain, u64::MAX, *ias, ash::vk::Fence::null())});
+		let result = unsafe {swapchain_loader.acquire_next_image(*swapchain, u64::MAX, *ias, ash::vk::Fence::null())};
 		
 		let idx = match result{
 			Ok((image_index, is_suboptimal)) => {
@@ -1136,7 +1132,7 @@ impl VulkanApi {
 				return ;
 			}
 			
-			Err(e) => { return; }
+			Err(_e) => { return; }
 		};
 
 		// begin recording commands
@@ -1458,7 +1454,7 @@ impl VulkanApi {
 		
 		/*using take it drops vma_allocator Option out of this scope
 		it doesn't exist vmaDestroyAllocator(vmaAllocator); */
-		if let Some(allocator) = self.vma_allocator.take() {}
+		if let Some(_allocator) = self.vma_allocator.take() {}
 
 		// cleanup Vulkan
 		if let Some(device) = &self.device {

@@ -6,15 +6,14 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/02 10:18:45 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/16 14:39:59 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#![allow(warnings)]
+#![allow(warnings)] //remove warning msg.
 
 mod vulkan_api;
 
-use ash::Entry;
 use crate::vulkan_api::VulkanApi;
 
 use std::process::ExitCode; //exit code in main, as return (1 or 0)
@@ -24,6 +23,7 @@ use std::io::BufRead;
 
 use vulkan_rust::obj::{Obj, Vect3}; //allow "let a: vulkan_rust::obj::Obj;" -> "let a: Obj;"
 use vulkan_rust::parser::store_obj_data;
+use vulkan_rust::matrix::Matrix;
 
 fn _print_vector(a: &Vect3){
 	println!("x: {}, y: {}, z: {}", a.x(), a.y(), a.z());
