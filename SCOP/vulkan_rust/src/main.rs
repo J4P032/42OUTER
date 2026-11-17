@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/16 14:39:59 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/17 12:45:36 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,6 +107,25 @@ fn scop(args: &Vec<String>) -> Result<(), &'static str>{
         vulkan_api.run();
     }
     vulkan_api.shutdown();
+	
+	//test matrix
+	let mut A = Matrix::<2, 2>::new();
+	let mut B = Matrix::<2, 2>::new();
+	A.set_matrix(0, 0, 1.0);
+	A.set_matrix(0, 1, 2.0);
+	A.set_matrix(1, 0, 1.0);
+	A.set_matrix(1, 1, 1.0);
+	B.set_matrix(0, 0, 1.0);
+	B.set_matrix(0, 1, 2.0);
+	B.set_matrix(1, 0, 1.0);
+	B.set_matrix(1, 1, 2.0);
+	let C = &A * &B;
+	C.print();
+	//let aux = Vec::<f32>::new();
+	let aux = C.get_vertical_matrix();
+	for i in aux{
+		print!("{} ", i);
+	}
 
 	
 	Ok(())
