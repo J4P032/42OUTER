@@ -18,6 +18,7 @@ add_executable(scop
     src/parser.cpp
     src/utils.cpp
     src/vulkan_init.cpp
+    src/mvp.cpp
 )
 
 # Advertencias del compilador

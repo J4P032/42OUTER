@@ -16,6 +16,7 @@
 #include "vulkan_init.hpp"
 #include "Vect3.hpp"
 #include "utils.hpp"
+#include "mvp.hpp"
 
 #ifdef USING_SDL2
 	#include <SDL2/SDL.h> //para SDL2 instalado en 42.
@@ -1659,6 +1660,15 @@ void VulkanInit::render()
 			vkCmdBindVertexBuffers(res.commandBuffer, 0, 1, &vertexBuffer, offsets);
 
 		// ***
+
+		// ****
+		/*aqui sacamos la matriz de transformacion y se la pasamos a vulkan como matriz transpuesta
+		(vertical ruled)*/
+		Matrix<4, 4> aux = calculate_mvp();
+		std::array<float, 16> mvpData = aux.get_vertical_matrix();
+		vkCmdPushConstants(res.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float) * 16, mvpData.data());
+
+		// ****
 
 
 		/*	3 -> es el numero de vertices a dibujar. Esto era antes. Ahora es el num del objeto

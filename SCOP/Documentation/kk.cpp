@@ -269,5 +269,6 @@ void VulkanInit::render()
 3. En render() (Parte 2, justo antes de vkCmdDraw): Calculas MVP = Projection * View * 
 	Model, la traspones y llamas a vkCmdPushConstants(res.commandBuffer, pipelineLayout, 
 	VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float) * 16, punteroMatriz);.
-(Nota: Las variables de estado como el ángulo de giro del modelo o la posición de la cámara las actualizas en el bucle while (running) de tu función run(), antes de llamar a render()).
+(Nota: Las variables de estado como el ángulo de giro del modelo o la posición de la cámara
+las actualizas en el bucle while (running) de tu función run(), antes de llamar a render()).
 */
