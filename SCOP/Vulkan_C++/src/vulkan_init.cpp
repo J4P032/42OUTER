@@ -1019,6 +1019,10 @@ bool VulkanInit::createShaders()
 VkPipeline VulkanInit::createGraphicsPipeline()
 {
 	//****
+	/*VkPushConstantRange: Le vamos a pasar una costante en cada fotograma que es la
+	matriz de transformacion Punto_pantalla = Proyección × Vista × Modelo × Punto_3D
+	que es una matriz de 4x4 y por lo tanto 16 numeros que te le tendra que aplicar la
+	GPU a cada vertice del objeto en cada fotograma. Pero esos calculos lo hace la GPU*/
 	VkPushConstantRange	pushConstantRange{
 		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
 		.offset = 0,
@@ -1033,7 +1037,7 @@ VkPipeline VulkanInit::createGraphicsPipeline()
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
 		.setLayoutCount = 0,
 		.pushConstantRangeCount = 1,
-		.pPushConstantRanges = &pushConstantRange
+		.pPushConstantRanges = &pushConstantRange //aqui le pasamos la constante.
 	};
 	if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
 	{
