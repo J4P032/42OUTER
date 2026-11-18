@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 11:23:33 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/26 17:25:13 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/18 12:14:10 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,7 +28,12 @@ class   Vect3 {
 	    Vect3& operator=(const Vect3 &other);
 	    ~Vect3(void);
 
-		//Sobrecarta de operadores
+		///getters
+		float	get_x(void) const;
+		float	get_y(void) const;
+		float	get_z(void) const;
+
+		//Sobrecarga de operadores
 		Vect3			operator+(const Vect3& other) const;
 		Vect3&			operator+=(const Vect3& other);
 		Vect3			operator-(const Vect3& other) const;

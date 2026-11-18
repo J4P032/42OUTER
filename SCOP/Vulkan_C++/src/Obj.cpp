@@ -6,11 +6,12 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/18 12:42:13 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/26 12:07:33 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/18 12:41:42 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Obj.hpp"
+#include <limits>
 
 Obj::Obj(void){};
 
@@ -30,6 +31,8 @@ Obj&	Obj::operator=(const Obj &other){
 
 Obj::~Obj(void){}
 
+
+//Getters
 size_t	Obj::get_map_size(void){
 	return (_points.size());
 }
@@ -42,6 +45,11 @@ const VINDEX&	Obj::get_polygon_indexes() const{
 	return _polygon_indexes;
 }
 
+const Vect3&	Obj::get_center(void) const{
+	return _center;
+}
+
+//Setters
 void	Obj::insert_vert3(size_t i, Vect3 vertex){
 	_points.emplace(i, vertex);
 }
@@ -58,6 +66,46 @@ void	Obj::remove_findex(size_t num){
 	for (size_t i = 0; i < num; i++){
 		_polygon_indexes.pop_back();
 	}
+}
+
+///
+void	Obj::calculate_center(void){
+	if (_points.empty())
+		return;
+	
+	float min_x = std::numeric_limits<float>::max();
+	float min_y = std::numeric_limits<float>::max();
+	float min_z = std::numeric_limits<float>::max();
+	float max_x = std::numeric_limits<float>::lowest(); //min() its the min but positive
+	float max_y = std::numeric_limits<float>::lowest(); //lowest() c++11 if c++98 use -max()
+	float max_z = std::numeric_limits<float>::lowest();
+
+	std::map<size_t, Vect3>::const_iterator cit = _points.begin();
+	for (; cit != _points.end(); cit++){
+		float aux_x = cit->second.get_x();
+		float aux_y = cit->second.get_y();
+		float aux_z = cit->second.get_z();
+				
+		if (aux_x < min_x){
+			min_x = aux_x;
+		}
+		if (aux_y < min_y){
+			min_y = aux_y;
+		}
+		if (aux_z < min_z){
+			min_z = aux_z;
+		}
+		if (aux_x > max_x){
+			max_x = aux_x;
+		}
+		if (aux_y > max_y){
+			max_y = aux_y;
+		}
+		if (aux_z > max_z){
+			max_z = aux_z;
+		}
+	}
+	_center = Vect3((max_x + min_x) / 2.0f, (max_y + min_y) / 2.0f, (max_z + min_z) / 2.0f);
 }
 
 

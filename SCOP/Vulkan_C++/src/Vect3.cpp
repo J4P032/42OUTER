@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 12:39:52 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/10/26 17:21:29 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/18 12:15:58 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,19 @@ Vect3& Vect3::operator=(const Vect3& other){
 }
 
 Vect3::~Vect3(void){}
+
+///getters
+float	Vect3::get_x(void) const{
+	return _x;
+}
+
+float	Vect3::get_y(void) const{
+	return _y;
+}
+
+float	Vect3::get_z(void) const{
+	return _z;	
+}
 
 //operators
 Vect3   Vect3::operator+(const Vect3& other) const{
