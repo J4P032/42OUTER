@@ -1018,14 +1018,22 @@ bool VulkanInit::createShaders()
 */
 VkPipeline VulkanInit::createGraphicsPipeline()
 {
-	
+	//****
+	VkPushConstantRange	pushConstantRange{
+		.stageFlags = VK_SHADER_STAGE_VERTEX_BIT,
+		.offset = 0,
+		.size = sizeof(float) * 16 //4x4 matriz de tranformacion del objeto
+	};
+	//****
+
 	//1. need to define a pipeline layout. 0 no matriz de rotación.
 	//el cambio de forma por reajuste de ventana viene en el paso 6.
 	VkPipelineLayoutCreateInfo pipelineLayoutInfo
 	{
 		.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
 		.setLayoutCount = 0,
-		.pushConstantRangeCount = 0
+		.pushConstantRangeCount = 1,
+		.pPushConstantRanges = &pushConstantRange
 	};
 	if (vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &pipelineLayout) != VK_SUCCESS)
 	{
@@ -1649,7 +1657,7 @@ void VulkanInit::render()
 		// ***
 
 
-		/*	3 -> es el numero de vertices a dibujar
+		/*	3 -> es el numero de vertices a dibujar. Esto era antes. Ahora es el num del objeto
 			1 -> es el número de instancias para no recalcular. Solo queremos una
 			0 -> firstVertex. El indice del primer vértice Es un offset para leer desde ese primero
 			0 -> firstInstance. lo mismo con instancias. Al no usarlas ponemos 0.*/
