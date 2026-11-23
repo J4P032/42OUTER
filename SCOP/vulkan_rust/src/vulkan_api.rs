@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/16 12:22:47 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/23 16:01:57 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,6 +34,8 @@ use sdl2::video::Window;
 use ash::Entry; //parte del volk
 use	crate::Obj;
 use crate::Vect3;
+use crate::Matrix;
+use vulkan_rust::mvp::calculate_mvp;
 use vk_mem::Alloc;
 
 pub const VULKAN_VERSION: u32 = API_VERSION_1_3;
@@ -802,13 +804,23 @@ impl VulkanApi {
 	}
 
 	fn create_graphics_pipeline(&mut self) -> Option<ash::vk::Pipeline> {
-		//1. need to define a pipeline layout.
+		
+		//0. Create constant Screen_point = Projection × View × Model × 3D_point matrix 4x4 (16 elements)
+		let push_constant_range = ash::vk::PushConstantRange{
+			stage_flags: ash::vk::ShaderStageFlags::VERTEX,
+			offset: 0,
+			size: (std::mem::size_of::<f32>() * 16) as u32
+		};
+				
+		//1. need to define a pipeline layout with that constant created.
 		let Some(device) = &self.device else { return None;};
 		let pipeline_layout_info = ash::vk::PipelineLayoutCreateInfo{
 			set_layout_count: 0,
-			push_constant_range_count: 0,
+			push_constant_range_count: 1,
+			p_push_constant_ranges: &push_constant_range,
 			..Default::default()	
 		};
+		
 		let Ok(pipeline_layout) = (unsafe {device.create_pipeline_layout(&pipeline_layout_info, None)}) else { 
 			self.show_error("Unable to create the pipeline layout");
 			return None;};
@@ -1282,6 +1294,33 @@ impl VulkanApi {
    			 }
 		}
 
+		//****
+		//Calculate transformation matrix and pass to Vulkan as vertical ruled one
+		
+		/* Matrix<4, 4> aux = calculate_mvp();
+		std::array<float, 16> mvpData = aux.get_vertical_matrix();
+		vkCmdPushConstants(res.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float) * 16, mvpData.data()); */
+		
+		let aux: Matrix<4, 4> = calculate_mvp();
+		let mvp_data = aux.get_vertical_matrix();
+		if let Some(pipeline_layout) = self.pipeline_layout {
+			unsafe { 
+				let bytes = std::slice::from_raw_parts(
+					mvp_data.as_ptr() as *const u8,
+					std::mem::size_of_val(&mvp_data),
+				);
+				
+				device.cmd_push_constants(
+				*command_buffer,
+				pipeline_layout,
+				ash::vk::ShaderStageFlags::VERTEX,
+				0,
+				bytes,);
+			}
+		};
+		
+		//****
+		
 		unsafe { device.cmd_draw(*command_buffer, self.vertex_count, 1, 0, 0) };
 		// ***
 		

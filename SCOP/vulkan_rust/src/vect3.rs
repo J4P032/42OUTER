@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:18:59 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/08/19 11:35:13 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/23 14:03:51 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -138,5 +138,9 @@ impl DivAssign<f32> for Vect3{
 	}
 }
 
-
+impl Vect3{
+	pub fn print(&self){
+		println!("x: {}, y: {}, z: {}", self.x, self.y, self.z);
+	}
+}
 

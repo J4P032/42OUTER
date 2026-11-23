@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/18 12:42:13 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/18 12:41:42 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/23 14:13:43 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -125,5 +125,7 @@ void    Obj::stream_insert(std::ostream &out) const{
 			contador = 0;
 		}
 	}
+	out << std::endl << "CENTER:" << std::endl;
+	out << _center;
 }
 

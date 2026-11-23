@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/17 12:45:36 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/23 16:07:01 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -53,6 +53,8 @@ fn process_file(str: &str, obj3d: &mut Obj) -> Result<(), &'static str>{
 			let line = line.map_err(|_| "Error: Error Reading the file")?; //if Err stops for
 			store_obj_data(line, obj3d); //obj3d is already & as is &mut in function
 		}
+		obj3d.calculate_center();
+		//obj3d.get_center().print();
 		return Ok(());
 	} else {
 		return Err("Error: Couldn't open the OBJ file");
@@ -121,12 +123,14 @@ fn scop(args: &Vec<String>) -> Result<(), &'static str>{
 	B.set_matrix(1, 1, 2.0);
 	let C = &A * &B;
 	C.print();
-	//let aux = Vec::<f32>::new();
+	
 	let aux = C.get_vertical_matrix();
-	for i in aux{
-		print!("{} ", i);
-	}
-
+	for col in 0..aux.len() {
+    	for row in 0..aux[col].len() {
+        	print!("{} ", aux[col][row]);
+		}
+    }
+    println!();
 	
 	Ok(())
 }

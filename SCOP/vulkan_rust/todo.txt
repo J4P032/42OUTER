@@ -1,6 +1,2 @@
-1. modificamos el objeto OBJ para almacenar el centro del objeto mediante
-	max y min de sus puntos. Metodo calculate_center.
-	* anyadir get _x _y _z al Vect3 para sacar el valor al leer el mapa
-	* add getter get_center para obtener el centro.
-	* creamos un archivo mvp.rs para calcular la matriz de transformacion y se la pasamos
-		a vulkan como matriz transpuesta mediante comando vkCmdPushConstants
+* creamos un archivo mvp.rs para calcular la matriz de transformacion y se la pasamos
+a vulkan como matriz transpuesta mediante comando vkCmdPushConstants

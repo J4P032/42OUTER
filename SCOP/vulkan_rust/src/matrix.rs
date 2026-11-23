@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/16 10:48:09 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/17 12:41:18 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/23 15:58:37 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,14 +34,14 @@ impl<const ROWS: usize, const COLS: usize> Matrix<ROWS, COLS>{
 		self.matrix
 	}
 
-	pub fn get_vertical_matrix(&self) -> Vec<f32>{
-		let mut vec = Vec::<f32>::with_capacity(ROWS * COLS);
+	pub fn get_vertical_matrix(&self) -> [[f32; ROWS]; COLS] {
+		let mut arr = [[0.0; ROWS]; COLS];
 		for col in 0..COLS{
 			for row in 0..ROWS{
-				vec.push(self.matrix[row][col])
+				arr[col][row] = self.matrix[row][col];
 			}
 		}
-		vec
+		arr
 	}
 }
 
