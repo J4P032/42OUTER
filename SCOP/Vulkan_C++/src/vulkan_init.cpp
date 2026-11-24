@@ -11,8 +11,6 @@
 /* ************************************************************************** */
 
 
-//buscar "***" para cambiar a scop del tutorial
-
 #include "vulkan_init.hpp"
 #include "Vect3.hpp"
 #include "utils.hpp"
@@ -128,7 +126,7 @@ void VulkanInit::shutdown()
 	// cleanup swapchain
 	destroySwapchain();
 
-	// VMA ***
+	// VMA
 	if (vertexBuffer && vertexAllocation && vmaAllocator)
 	{
     	vmaDestroyBuffer(vmaAllocator, vertexBuffer, vertexAllocation);
@@ -140,7 +138,6 @@ void VulkanInit::shutdown()
 		vmaDestroyAllocator(vmaAllocator);
 		vmaAllocator = VK_NULL_HANDLE;
 	}
-	// ***
 
 	// cleanup Vulkan
 	if (surface && vulkanInstance)
@@ -255,7 +252,6 @@ bool VulkanInit::initializeVulkan(Obj& obj3D)
 		return false;
 	}
 
-	// ***
 	/*	En el tutorial del triangulo no necesitabamos crear el buffer de lectura de
 		los vertices por que estaban hardcodeados en el shader. Aqui, los pillaremos
 		del parseo del .obj, asi que necesitamos meterlo en memoria una vez que hemos
@@ -264,7 +260,6 @@ bool VulkanInit::initializeVulkan(Obj& obj3D)
 		showError("Unable to create Vertex Buffer");
 		return false;
 	}
-	// ***
 
 	//Configurará y creará el swapchain(formato de color y num de imagenes a volcar) de Vulkan más los
 	//semáforos para controlar los procesos de creación de la imágenes.
@@ -676,7 +671,6 @@ bool VulkanInit::initializeVMA()
 	return true;
 }
 
-// ***
 bool VulkanInit::createVertexBuffer(Obj& obj3D) {
 	const VMAP&		points = obj3D.get_points();
 	const VINDEX&	indexes = obj3D.get_polygon_indexes();
@@ -748,7 +742,6 @@ bool VulkanInit::createVertexBuffer(Obj& obj3D) {
 
 	return true;
 }
-// ***
 
 
 /*Aquí se construye el almacén de imágenes para la pantalla. Pero todavia no se componen
@@ -1019,7 +1012,6 @@ bool VulkanInit::createShaders()
 */
 VkPipeline VulkanInit::createGraphicsPipeline()
 {
-	//****
 	/*VkPushConstantRange: Le vamos a pasar una costante en cada fotograma que es la
 	matriz de transformacion Punto_pantalla = Proyección × Vista × Modelo × Punto_3D
 	que es una matriz de 4x4 y por lo tanto 16 numeros que te le tendra que aplicar la
@@ -1029,7 +1021,6 @@ VkPipeline VulkanInit::createGraphicsPipeline()
 		.offset = 0,
 		.size = sizeof(float) * 16 //4x4 matriz de tranformacion del objeto
 	};
-	//****
 
 	//1. need to define a pipeline layout. 0 no matriz de rotación.
 	//el cambio de forma por reajuste de ventana viene en el paso 6.
@@ -1082,7 +1073,6 @@ VkPipeline VulkanInit::createGraphicsPipeline()
 		al Vertex Shader.
 	*/
 
-	// ***
 	VkVertexInputBindingDescription miBindingDescription{};
 	miBindingDescription.binding = 0;
 	miBindingDescription.stride = sizeof(Vect3); //avanzar hasta el siguiente vertice
@@ -1102,7 +1092,6 @@ VkPipeline VulkanInit::createGraphicsPipeline()
     		.vertexAttributeDescriptionCount = 1,
     		.pVertexAttributeDescriptions = &miAttributeDescription // El formato
 	};
-	// ***
 
 	//4. input assembly, we'll be drawing triangle lists
 	//al poner VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST le dice que espere 3 puntos y dibuje el triángulo
@@ -1635,7 +1624,6 @@ void VulkanInit::render()
 			de gris a textura. Habría que hacer dos pipelines y luego hacer esta llamada en cada caso*/
 		vkCmdBindPipeline(res.commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
 		
-		// ***
 		/* Le decimos a vulkan donde estan los vertices en su VRAM con bind.
 		
 			vkCmdBindVertexBuffers(
@@ -1659,16 +1647,11 @@ void VulkanInit::render()
 			VkDeviceSize offsets[] = {0};
 			vkCmdBindVertexBuffers(res.commandBuffer, 0, 1, &vertexBuffer, offsets);
 
-		// ***
-
-		// ****
 		/*aqui sacamos la matriz de transformacion y se la pasamos a vulkan como matriz transpuesta
 		(vertical ruled)*/
 		Matrix<4, 4> aux = calculate_mvp();
 		std::array<float, 16> mvpData = aux.get_vertical_matrix();
 		vkCmdPushConstants(res.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float) * 16, mvpData.data());
-
-		// ****
 
 
 		/*	3 -> es el numero de vertices a dibujar. Esto era antes. Ahora es el num del objeto

@@ -1,2 +1,0 @@
-* creamos un archivo mvp.rs para calcular la matriz de transformacion y se la pasamos
-a vulkan como matriz transpuesta mediante comando vkCmdPushConstants

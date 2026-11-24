@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/23 16:01:57 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/24 11:12:49 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -307,13 +307,11 @@ impl VulkanApi {
 			return false;
 		}
 
-		// ***
 		if !self.create_vertex_buffer(obj3d){
 			self.show_error("Unable to create Vertex Buffer");
 			return false;
 		}
-		// ***
-
+	
 		if !self.create_swapchain(self.width, self.height){
 			self.show_error("Unable to create swapchain");
 			return false;
@@ -552,7 +550,6 @@ impl VulkanApi {
 		true
 	}
 
-	// ***
 	/* We need to create a vertex Buffer to allow copy of obj stored vertexes into GPU */
 	fn create_vertex_buffer(&mut self, obj3d: Obj) -> bool{
 		
@@ -854,18 +851,15 @@ impl VulkanApi {
 		
 		//3. vertex pulling, don't define vertex input details
 		/* for Tutorial we comment the channel lines, but are necesary:
-			GPU needs to know how many bytes ignore or advance to find next vertex in memory
-			Channel -> we can send different data arrays from CPU. The number says which "plug"
+		GPU needs to know how many bytes ignore or advance to find next vertex in memory
+		Channel -> we can send different data arrays from CPU. The number says which "plug"
 						we are connected to. in Scop 0 is enough. Then link in Vertex Buffer to
 						same channel.
-			stride ->	size of vertex3
-			input_rate -> freq GPU advance to next element. Scop: we are going to draw vertices
+		stride ->	size of vertex3
+		input_rate -> freq GPU advance to next element. Scop: we are going to draw vertices
 						ones by one so it should advance by each vertex VertexInputRate::VERTEX	 
 
-			BE CAREFULL WITH LIFETIME AS binding_descriptions will last only here and 			
-			*/
-		
-		// ***
+		BE CAREFULL WITH LIFETIME AS binding_descriptions will last only here and*/
 		let binding_descriptions = [ash::vk::VertexInputBindingDescription::default()
 			.binding(0)
 			.stride(std::mem::size_of::<Vect3>() as u32)
@@ -880,8 +874,7 @@ impl VulkanApi {
 		vert_input_info.p_vertex_binding_descriptions = binding_descriptions.as_ptr();
 		vert_input_info.vertex_attribute_description_count = 1;
 		vert_input_info.p_vertex_attribute_descriptions = attribute_descriptions.as_ptr(); 
-		// ***
-		
+			
 		//4. input assembly, we'll be drawing triangle lists
 		let input_assembly_info = ash::vk::PipelineInputAssemblyStateCreateInfo::default()
 			.topology(ash::vk::PrimitiveTopology::TRIANGLE_LIST);
@@ -1279,7 +1272,6 @@ impl VulkanApi {
 		let Some(pipeline) = &self.pipeline else { return; };
 		unsafe { device.cmd_bind_pipeline(*command_buffer, ash::vk::PipelineBindPoint::GRAPHICS, *pipeline)}
 		
-		// ***
 		if let Some(v_buffer) = &self.vertex_buffer {
     		let buffers = [*v_buffer];
     		let offsets = [0]; 
@@ -1294,36 +1286,31 @@ impl VulkanApi {
    			 }
 		}
 
-		//****
 		//Calculate transformation matrix and pass to Vulkan as vertical ruled one
-		
-		/* Matrix<4, 4> aux = calculate_mvp();
-		std::array<float, 16> mvpData = aux.get_vertical_matrix();
-		vkCmdPushConstants(res.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float) * 16, mvpData.data()); */
-		
+		/*the ash cmd_push_constants is different as in C++ because it joins 2 parameters into 1.
+		So you have to pass a &[u8], that is an slice of bytes, that has the mem address plus
+		the number of data.
+		std::slice::from_raw_parts(pointer, length) */
 		let aux: Matrix<4, 4> = calculate_mvp();
 		let mvp_data = aux.get_vertical_matrix();
 		if let Some(pipeline_layout) = self.pipeline_layout {
 			unsafe { 
 				let bytes = std::slice::from_raw_parts(
 					mvp_data.as_ptr() as *const u8,
-					std::mem::size_of_val(&mvp_data),
+					std::mem::size_of_val(&mvp_data), //4(rows) * 4(cols) * 4(float bytes)
 				);
 				
 				device.cmd_push_constants(
-				*command_buffer,
-				pipeline_layout,
-				ash::vk::ShaderStageFlags::VERTEX,
-				0,
-				bytes,);
+					*command_buffer,
+					pipeline_layout,
+					ash::vk::ShaderStageFlags::VERTEX,
+					0,
+					bytes,
+				);
 			}
 		};
 		
-		//****
-		
 		unsafe { device.cmd_draw(*command_buffer, self.vertex_count, 1, 0, 0) };
-		// ***
-		
 				
 		//end dynamic rendering
 		unsafe { device.cmd_end_rendering(*command_buffer) };
@@ -1482,14 +1469,13 @@ impl VulkanApi {
 		// cleanup swapchain
 		self.destroy_swapchain();
 
-		//VMA ***
+		//VMA
 		if let (Some(allocator), Some(v_buffer), Some(mut v_allocation)) = (
 				&self.vma_allocator,
 				self.vertex_buffer.take(),
 				self.vertex_allocation.take()) {
 			unsafe { allocator.destroy_buffer(v_buffer, &mut v_allocation) };
 		}
-		// ***
 		
 		/*using take it drops vma_allocator Option out of this scope
 		it doesn't exist vmaDestroyAllocator(vmaAllocator); */
