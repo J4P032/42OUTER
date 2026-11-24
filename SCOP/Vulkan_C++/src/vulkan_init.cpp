@@ -162,7 +162,7 @@ void VulkanInit::shutdown()
 	SDL_Quit();
 }
 
-void VulkanInit::run()
+void VulkanInit::run(ScopState& scopState)
 {
 	running = true;
 	while (running)
@@ -195,7 +195,7 @@ void VulkanInit::run()
 			#endif
 		}
         //SDL_Delay(16); //limita a 60fps
-		render();
+		render(scopState);
 	}
 }
 
@@ -1313,7 +1313,7 @@ bool VulkanInit::createCommandBuffers()
 	4. Barreras de Memoria
 	5. Dibujo dinámico
 	6. Envio y Presentación	*/
-void VulkanInit::render()
+void VulkanInit::render(ScopState& scopState)
 {
 	// first check if our swapchain is still valid
 	/*1. Si cambiamos el tamaño de la ventana, el viejo lienzo no sirve
@@ -1649,7 +1649,7 @@ void VulkanInit::render()
 
 		/*aqui sacamos la matriz de transformacion y se la pasamos a vulkan como matriz transpuesta
 		(vertical ruled)*/
-		Matrix<4, 4> aux = calculate_mvp();
+		Matrix<4, 4> aux = calculate_mvp(scopState);
 		std::array<float, 16> mvpData = aux.get_vertical_matrix();
 		vkCmdPushConstants(res.commandBuffer, pipelineLayout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(float) * 16, mvpData.data());
 

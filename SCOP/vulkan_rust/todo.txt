@@ -1,0 +1,8 @@
+*hay que crear una estructura ScopState que guarde por ahora
+	1. el tiempo ahora
+	2. el angulo y para calcular rotaciones
+
+*pasar dicho scopState por & a las funciones run() y render() para en el calculate_mvp() 
+pasarle dicha estructura y que asi calcule angulos de rotacion de la matriz.
+
+*hacer un time.rs para devolver el tiempo ahora y el delta.

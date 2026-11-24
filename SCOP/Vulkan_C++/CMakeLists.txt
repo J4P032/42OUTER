@@ -19,6 +19,7 @@ add_executable(scop
     src/utils.cpp
     src/vulkan_init.cpp
     src/mvp.cpp
+    src/time.cpp
 )
 
 # Advertencias del compilador

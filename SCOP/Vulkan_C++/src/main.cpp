@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 13:18:17 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/23 14:16:57 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/24 12:39:12 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,7 @@
 #include <fstream>
 #include <map>
 #include "Matrix.hpp"
+#include "ScopState.hpp"
 
 Obj	process_file(char* str){
 	std::ifstream	inputFile(str);
@@ -44,7 +45,9 @@ void	scop(int ac, char** av){
 
 	VulkanInit scop;
 	if (scop.initialize(obj3D)) {
-		scop.run();
+		ScopState scopState;
+		scopState.start_time = grab_time();
+		scop.run(scopState);
 	}
 	scop.shutdown();
 

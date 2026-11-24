@@ -28,6 +28,7 @@
 #include <array>
 #include <string>
 #include <shaderc/shaderc.hpp>
+#include "ScopState.hpp"
 
 struct SDL_Window;
 struct VmaAllocator_T;
@@ -113,10 +114,10 @@ class VulkanInit
 	VkPipeline createGraphicsPipeline();
 	bool createSyncResources();
 	bool createCommandBuffers();
-	void render();
+	void render(ScopState& scopState);
 
 public:
 	bool initialize(Obj& obj3D);
 	void shutdown();
-	void run();
+	void run(ScopState& scopState);
 };
