@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/09 12:47:35 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/10 14:10:47 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/24 14:53:01 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,6 +42,19 @@ bool	Matrix<Rows, Cols>::set_matrix(size_t row, size_t col, float num){
 	_matrix[row * Cols + col] = num;
 	return true;
 }
+
+template<size_t Rows, size_t Cols>
+void	Matrix<Rows, Cols>::set_identity(void){
+	for (size_t row = 0; row < Rows; row++){
+		for (size_t col = 0; col < Cols; col++){
+			if (row == col)
+				_matrix[row * Cols + col] = 1.0f;
+			else
+				_matrix[row * Cols + col] = 0.0f;
+		}
+	}
+}
+
 
 template<size_t Rows, size_t Cols>
 const std::array<float, Rows * Cols>	Matrix<Rows, Cols>::get_vertical_matrix(void) const{

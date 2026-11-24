@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/09 12:05:17 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/10 13:35:21 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/24 14:47:34 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,10 +32,11 @@ public:
 	
 	//setters
 	bool	set_matrix(size_t row, size_t col, float num);
+	void	set_identity(void);
 	
 	//vertical ruled array for Vulkan instead of horizontal ruled
 	const std::array<float, Rows * Cols>	get_vertical_matrix(void) const;
-	
+
 	//operators
 	/*for to Matrixes A(a,b), B(c,d), where a & c are rows
 	and b & d are columns, it will be only possible to multiply them
