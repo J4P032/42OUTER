@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/18 12:27:35 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/18 12:40:43 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/25 10:56:16 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ class Obj : public Interface{
 	private:
 		VMAP	_points;
 		VINDEX	_polygon_indexes;
-		Vect3	_center; ///
+		Vect3	_center;
 		
 	public:
 		Obj(void);
@@ -47,17 +47,18 @@ class Obj : public Interface{
 		Obj& operator=(const Obj &other);
 		~Obj(void);
 
-		size_t			get_map_size(void);
+		size_t			get_map_size(void) const;
 		const VMAP&		get_points() const;
 		const VINDEX&	get_polygon_indexes() const;
-		const Vect3&	get_center(void) const;///
+		const Vect3&	get_center(void) const;
 		void			insert_vert3(size_t, Vect3);
 		
 		void		insert_findex(uint32_t);
 		uint32_t	show_last_findex(void);
 		void		remove_findex(size_t);
 
-		void		calculate_center(void);///
+		void		calculate_center(void);
+		void		move_to_center(void);///
 
 		void	stream_insert(std::ostream &out) const override;
 };

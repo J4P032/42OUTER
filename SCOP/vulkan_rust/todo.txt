@@ -8,3 +8,6 @@ pasarle dicha estructura y que asi calcule angulos de rotacion de la matriz.
 *hacer un time.rs para devolver el tiempo ahora y el delta.
 
 *hacer en Matrix.rs un metodo para hacer la matriz identidad.
+
+*hacer en Obj.rs un metodo para mover el objeto al centro. Para ello mejor
+usar setters en Vect3.rs

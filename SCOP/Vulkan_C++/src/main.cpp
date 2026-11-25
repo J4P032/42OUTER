@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/19 13:18:17 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/24 12:39:12 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/25 10:53:58 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,6 +33,7 @@ Obj	process_file(char* str){
 	}
 	
 	obj3D.calculate_center();
+	obj3D.move_to_center();
 	
 	//std::cout << obj3D << std::endl; //for testing good data.
 	return obj3D;

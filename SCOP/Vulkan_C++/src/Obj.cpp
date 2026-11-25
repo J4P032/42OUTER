@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/18 12:42:13 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/23 14:13:43 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/25 11:02:01 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,7 +33,7 @@ Obj::~Obj(void){}
 
 
 //Getters
-size_t	Obj::get_map_size(void){
+size_t	Obj::get_map_size(void) const{
 	return (_points.size());
 }
 
@@ -68,7 +68,6 @@ void	Obj::remove_findex(size_t num){
 	}
 }
 
-///
 void	Obj::calculate_center(void){
 	if (_points.empty())
 		return;
@@ -108,6 +107,15 @@ void	Obj::calculate_center(void){
 	_center = Vect3((max_x + min_x) / 2.0f, (max_y + min_y) / 2.0f, (max_z + min_z) / 2.0f);
 }
 
+///
+void	Obj::move_to_center(void){
+	VMAP::iterator it = _points.begin();
+	for (; it != _points.end(); it++){
+		it->second.set_x(it->second.get_x() - _center.get_x());
+		it->second.set_y(it->second.get_y() - _center.get_y());
+		it->second.set_z(it->second.get_z() - _center.get_z());
+	}
+}
 
 void    Obj::stream_insert(std::ostream &out) const{
     size_t	contador = 0;
