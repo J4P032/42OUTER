@@ -10,6 +10,10 @@
 /*                                                                            */
 /* ************************************************************************** */
 
+#define VOLK_IMPLEMENTATION
+#define VMA_IMPLEMENTATION
+#define VMA_STATIC_VULKAN_FUNCTIONS 0
+#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
 
 #include "vulkan_init.hpp"
 #include "Vect3.hpp"
@@ -22,12 +26,12 @@
 	#include <SDL3/SDL.h>
 #endif
 
-#define VOLK_IMPLEMENTATION
-#include <volk.h>
-#define VMA_IMPLEMENTATION
-#define VMA_STATIC_VULKAN_FUNCTIONS 0
-#define VMA_DYNAMIC_VULKAN_FUNCTIONS 1
-#include <vma/vk_mem_alloc.h>
+
+#if __has_include(<vma/vk_mem_alloc.h>)
+    #include <vma/vk_mem_alloc.h>
+#else
+    #include <vk_mem_alloc.h>
+#endif
 
 
 

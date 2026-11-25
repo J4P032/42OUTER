@@ -8,7 +8,13 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Opciones de compilación
-option(USE_SYSTEM_SDK "Usar Vulkan y SDL instalados en el sistema" OFF)
+if(EXISTS "/goinfre/jrollon-")
+    set(USE_SYSTEM_SDK OFF)
+else()
+    set(USE_SYSTEM_SDK ON)
+endif()
+
+#option(USE_SYSTEM_SDK "Usar Vulkan y SDL instalados en el sistema" OFF)
 option(USE_SDL2 "Usar SDL2 en lugar de SDL3" OFF)
 
 add_executable(scop
@@ -45,6 +51,9 @@ if(USE_SYSTEM_SDK)
     else()
         # Vulkan instalado en el sistema.
         find_package(Vulkan REQUIRED)
+        if(EXISTS "/usr/include/volk")
+            target_include_directories(scop SYSTEM PRIVATE "/usr/include/volk")
+        endif()
     endif()
 else()
     # SDK utilizado en el entorno de /goinfre.
@@ -136,9 +145,13 @@ endif()
 # Enlazado de Vulkan y shaderc
 # --------------------------------------------------
 
-#target_link_options(scop PRIVATE -fsanitize=address)
-
-target_link_libraries(scop PRIVATE shaderc_combined)
+if(USE_SYSTEM_SDK)
+    find_package(PkgConfig REQUIRED)
+    pkg_check_modules(SHADERC REQUIRED IMPORTED_TARGET shaderc)
+    target_link_libraries(scop PRIVATE PkgConfig::SHADERC)
+else()
+    target_link_libraries(scop PRIVATE shaderc_combined)
+endif()
 
 if(USE_SYSTEM_SDK AND NOT DEFINED VULKAN_DIR)
     target_link_libraries(scop PRIVATE Vulkan::Vulkan)

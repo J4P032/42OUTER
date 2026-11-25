@@ -13,7 +13,14 @@
 
 #pragma once
 
-#define VK_NO_PROTOTYPES
+
+#if __has_include(<volk.h>)
+	#include <volk.h>
+#else
+	#include <volk/volk.h>
+#endif
+
+#include <vulkan/vulkan.h>
 
 #ifdef USING_SDL2
 	#include <SDL2/SDL_vulkan.h> //para SDL2 42
@@ -23,7 +30,6 @@
 
 #include "Obj.hpp"
 #include <string>
-#include <vulkan/vulkan.h>
 #include <vector>
 #include <array>
 #include <string>
