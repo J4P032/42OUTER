@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/19 12:09:35 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/23 14:21:35 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/25 14:04:11 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,3 +18,4 @@ pub mod parser;
 pub mod obj;
 pub mod matrix;
 pub mod mvp;
+pub mod scopstate;

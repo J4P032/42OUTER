@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:36:12 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/23 16:07:01 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/25 14:42:03 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,8 @@ use std::io::BufRead;
 use vulkan_rust::obj::{Obj, Vect3}; //allow "let a: vulkan_rust::obj::Obj;" -> "let a: Obj;"
 use vulkan_rust::parser::store_obj_data;
 use vulkan_rust::matrix::Matrix;
+
+use vulkan_rust::scopstate::*;
 
 fn _print_vector(a: &Vect3){
 	println!("x: {}, y: {}, z: {}", a.x(), a.y(), a.z());
@@ -54,6 +56,7 @@ fn process_file(str: &str, obj3d: &mut Obj) -> Result<(), &'static str>{
 			store_obj_data(line, obj3d); //obj3d is already & as is &mut in function
 		}
 		obj3d.calculate_center();
+		obj3d.move_to_center();
 		//obj3d.get_center().print();
 		return Ok(());
 	} else {
@@ -106,7 +109,8 @@ fn scop(args: &Vec<String>) -> Result<(), &'static str>{
 	
 	let mut vulkan_api = VulkanApi::new();
     if vulkan_api.initialize(obj3d) {
-        vulkan_api.run();
+      	let mut scop_state: ScopState = ScopState::new();
+		vulkan_api.run(&mut scop_state);
     }
     vulkan_api.shutdown();
 	

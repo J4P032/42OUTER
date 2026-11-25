@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/06/22 11:18:59 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/23 14:03:51 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/25 13:10:29 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,6 +48,24 @@ impl Vect3{
 	}
 }
 
+//setters
+impl Vect3{
+	pub fn set_x(&mut self, num: f32){
+		self.x = num;
+	}
+}
+
+impl Vect3{
+	pub fn set_y(&mut self, num: f32){
+		self.y = num;
+	}
+}
+
+impl Vect3{
+	pub fn set_z(&mut self, num: f32){
+		self.z = num;
+	}
+}
 
 // +
 impl Add for Vect3{

@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/08/19 11:39:29 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/23 14:06:53 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/25 14:14:03 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,6 +19,11 @@ pub struct Obj{
 	_polygon_indexes:	Vec<u32>,
 	_center:			Vect3,
 }
+
+//-------------------------------------------------------------
+//-------------------------------------------------------------
+
+
 
 //constructors
 impl Obj{
@@ -129,6 +134,16 @@ impl Obj{
 				(max_z + min_z) / 2.0
 			)
 		} 
+	}
+}
+
+impl Obj{
+	pub fn move_to_center(&mut self){
+		for it in &mut self._points{
+			it.1.set_x(it.1.x() - self._center.x());
+			it.1.set_y(it.1.y() - self._center.y());
+			it.1.set_z(it.1.z() - self._center.z());
+		}
 	}
 }
 

@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/09/14 20:36:28 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/24 11:12:49 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/25 15:39:10 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,6 +35,7 @@ use ash::Entry; //parte del volk
 use	crate::Obj;
 use crate::Vect3;
 use crate::Matrix;
+use crate::ScopState;
 use vulkan_rust::mvp::calculate_mvp;
 use vk_mem::Alloc;
 
@@ -241,7 +242,7 @@ impl VulkanApi {
 	pub fn initialize(&mut self, obj3d: Obj) -> bool {
 		if let Ok(sdl_init) = sdl2::init() {
 			if let Ok(video_subsystem) = sdl_init.video() {
-				match video_subsystem.window("Scop Rust", self.width, self.height).position_centered().vulkan().resizable().build() {
+				match video_subsystem.window("Vulkan Rust", self.width, self.height).position_centered().vulkan().resizable().build() {
 					Ok(sdl_window) => { 
 						self.window = Some(sdl_window);
 					}
@@ -1056,7 +1057,7 @@ impl VulkanApi {
 	https://docs.rs/sdl2/latest/sdl2/event/enum.WindowEvent.html
 	*/
 impl VulkanApi {
-	pub fn run(&mut self) {
+	pub fn run(&mut self, scop_state: &mut ScopState) {
 		self.running = true;
 		
 		while self.running {
@@ -1076,11 +1077,11 @@ impl VulkanApi {
 					_ => {}
 				}
 			}
-			self.render();
+			self.render(scop_state);
 		}
 	}
 
-	fn render(&mut self) {
+	fn render(&mut self, scop_state: &mut ScopState) {
 		// first check if our swapchain is still valid
 		let Some(device) = self.device.clone() else { return; };
 		
@@ -1291,7 +1292,7 @@ impl VulkanApi {
 		So you have to pass a &[u8], that is an slice of bytes, that has the mem address plus
 		the number of data.
 		std::slice::from_raw_parts(pointer, length) */
-		let aux: Matrix<4, 4> = calculate_mvp();
+		let aux: Matrix<4, 4> = calculate_mvp(scop_state);
 		let mvp_data = aux.get_vertical_matrix();
 		if let Some(pipeline_layout) = self.pipeline_layout {
 			unsafe { 

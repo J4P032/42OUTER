@@ -6,7 +6,7 @@
 /*   By: jrollon- <jrollon-@student.42madrid.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/16 10:48:09 by jrollon-          #+#    #+#             */
-/*   Updated: 2026/11/23 15:58:37 by jrollon-         ###   ########.fr       */
+/*   Updated: 2026/11/25 14:13:49 by jrollon-         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,10 @@
 pub struct Matrix<const ROWS: usize, const COLS: usize>{
 	matrix: [[f32; COLS]; ROWS],
 }
+
+//-------------------------------------------------------------
+//-------------------------------------------------------------
+
 
 use std::ops::{AddAssign, Mul, MulAssign};
 
@@ -49,6 +53,19 @@ impl<const ROWS: usize, const COLS: usize> Matrix<ROWS, COLS>{
 impl<const ROWS: usize, const COLS: usize> Matrix<ROWS, COLS>{
 	pub fn set_matrix(&mut self, row: usize, col: usize, num: f32){
 		self.matrix[row][col] = num;	
+	}
+
+	pub fn set_identity(&mut self){
+		for row in 0..ROWS{
+			for col in 0..COLS{
+				if row == col{
+					self.matrix[row][col] = 1.0;
+				}
+				else {
+					self.matrix[row][col] = 0.0;
+				}
+			}
+		}
 	}
 }
 
