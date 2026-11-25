@@ -56,7 +56,7 @@ bool VulkanInit::initialize(Obj& obj3D) {
 	#ifdef USING_SDL2
 		SDL_Init(SDL_INIT_VIDEO);
 		window = SDL_CreateWindow(
-			"Vulkan SDL2",
+			"Vulkan SDL2 C++",
 			SDL_WINDOWPOS_CENTERED,
 			SDL_WINDOWPOS_CENTERED,
 			width,
@@ -72,7 +72,7 @@ bool VulkanInit::initialize(Obj& obj3D) {
 	#endif
 			
 	//SDL_WINDOW_VULKAN = la ventana sera usada con vulkan
-	window = SDL_CreateWindow("Vulkan SDL3", width, height, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE); 
+	window = SDL_CreateWindow("Vulkan SDL3 C++", width, height, SDL_WINDOW_VULKAN | SDL_WINDOW_RESIZABLE); 
 	if (!window)
 	{
 		showError("Error creating window");
